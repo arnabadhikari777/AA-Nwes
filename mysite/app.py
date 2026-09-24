@@ -185,7 +185,7 @@ def get_news():
 
     # If it's been more than an hour since the last automatic pull, fetch fresh
     # news from the API now, right here in the request, before answering.
-    if time.time() - last_all_update_time > 3600:
+    if time.time() - last_all_update_time > 10:
         update_news_in_db()
         last_all_update_time = time.time()
 
