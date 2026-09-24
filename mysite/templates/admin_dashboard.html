@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - A.A.News</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0e1a30;
+            --navy-soft: #16223c;
+            --crimson: #e6314b;
+            --crimson-deep: #b81d36;
+            --gold: #f2a71b;
+            --cream: #f6f2e9;
+            --line: #e6ddc9;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #eee7d6 100%);
+            margin: 0;
+            padding: 30px 20px 60px;
+            color: var(--navy);
+        }
+        .wrap { max-width: 1100px; margin: 0 auto; }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 26px;
+        }
+        .topbar h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            margin: 0;
+        }
+        .topbar h1 span { color: var(--crimson); }
+        .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn {
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease, filter 0.2s ease;
+            display: inline-block;
+        }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+        .btn-gold { background: linear-gradient(120deg, var(--gold), #ff8a3d); color: var(--navy); }
+        .btn-navy { background: linear-gradient(120deg, var(--navy), var(--navy-soft)); color: #fff; }
+        .btn-crimson { background: linear-gradient(120deg, var(--crimson), var(--crimson-deep)); color: #fff; }
+        .btn-small { padding: 7px 14px; font-size: 12.5px; }
+
+        .card {
+            background: #fffdf9;
+            border-radius: 14px;
+            box-shadow: 0 16px 40px rgba(14,26,48,0.12);
+            border-top: 4px solid var(--gold);
+            padding: 24px;
+            margin-bottom: 26px;
+        }
+        .card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 19px;
+            margin: 0 0 16px;
+        }
+
+        /* Category chips */
+        .cat-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+        .cat-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--cream);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 8px 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .cat-chip form { margin: 0; }
+        .cat-chip .del-cat-btn {
+            border: none;
+            background: var(--crimson);
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .cat-chip.locked { opacity: 0.7; }
+
+        .add-cat-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .add-cat-form input[type="text"] {
+            flex: 1;
+            min-width: 180px;
+            padding: 10px 14px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .add-cat-form input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(242,167,27,0.22); }
+
+        /* News table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--line);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        th { color: #7c8598; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td.title-cell { font-weight: 600; max-width: 340px; }
+        .badge {
+            display: inline-block;
+            background: var(--navy-soft);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+        .row-actions { display: flex; gap: 8px; }
+        .row-actions form { margin: 0; }
+        .empty-state { text-align: center; padding: 40px 10px; color: #7c8598; }
+
+        @media (max-width: 700px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; }
+            tr { border-bottom: 2px solid var(--line); padding: 12px 0; }
+            td { border: none; padding: 4px 0; }
+            td::before { content: attr(data-label); display: block; font-size: 11px; color: #7c8598; text-transform: uppercase; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <div class="topbar">
+        <h1>A.A.<span>News</span> — Admin Dashboard</h1>
+        <div class="topbar-actions">
+            <a href="/add_news" class="btn btn-gold">+ Write News</a>
+            <a href="/" class="btn btn-navy">🏠 View Website</a>
+            <a href="/logout" class="btn btn-crimson">Logout</a>
+        </div>
+    </div>
+
+    <!-- Category Management -->
+    <div class="card">
+        <h2>🗂️ Categories</h2>
+        <div class="cat-list">
+            {% for cat in categories %}
+                <div class="cat-chip {% if cat.slug == 'all' %}locked{% endif %}">
+                    <span>{{ cat.label }}</span>
+                    {% if cat.slug != 'all' %}
+                    <form method="POST" action="/admin/delete_category/{{ cat.slug }}"
+                          onsubmit="return confirm('Delete category \'{{ cat.label }}\'? Existing news in it will move to All / Home.');">
+                        <button type="submit" class="del-cat-btn" title="Delete category">×</button>
+                    </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <form class="add-cat-form" method="POST" action="/admin/add_category">
+            <input type="text" name="label" placeholder="New category name (e.g. Education, Gaming)" required>
+            <button type="submit" class="btn btn-navy">+ Add Category</button>
+        </form>
+    </div>
+
+    <!-- News List -->
+    <div class="card">
+        <h2>📰 All News ({{ news_items|length }})</h2>
+
+        {% if news_items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Source</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for news in news_items %}
+                <tr>
+                    <td class="title-cell" data-label="Title">{{ news.title }}</td>
+                    <td data-label="Source">{{ news.source or '—' }}</td>
+                    <td data-label="Category"><span class="badge">{{ news.category }}</span></td>
+                    <td data-label="Actions">
+                        <div class="row-actions">
+                            <a href="/admin/edit/{{ news.id }}" class="btn btn-gold btn-small">Edit</a>
+                            <form method="POST" action="/admin/delete/{{ news.id }}"
+                                  onsubmit="return confirm('Delete this news item permanently?');">
+                                <button type="submit" class="btn btn-crimson btn-small">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">No news in the database yet.</div>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

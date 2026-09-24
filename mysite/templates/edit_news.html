@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit News - A.A.News</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0e1a30;
+            --navy-soft: #16223c;
+            --crimson: #e6314b;
+            --gold: #f2a71b;
+            --cream: #f6f2e9;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #eee7d6 100%);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .admin-container {
+            background-color: #fffdf9;
+            padding: 34px;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(14,26,48,0.14);
+            width: 100%;
+            max-width: 640px;
+            border-top: 5px solid var(--gold);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #eee2c4;
+        }
+        .header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--navy);
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+        }
+        .back-btn {
+            background: linear-gradient(120deg, var(--navy), var(--navy-soft));
+            color: white;
+            text-decoration: none;
+            padding: 9px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .back-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: var(--navy);
+            font-size: 13.5px;
+            letter-spacing: 0.2px;
+        }
+        input[type="text"], input[type="url"], select, textarea {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid #ddd6c6;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(242,167,27,0.22);
+        }
+        textarea { resize: vertical; }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(120deg, var(--gold), #ff8a3d);
+            border: none;
+            color: var(--navy);
+            font-size: 15px;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        button[type="submit"]:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+        .hint {
+            font-size: 12.5px;
+            color: #8a93a6;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <div class="header">
+        <h2>✏️ Edit News</h2>
+        <a href="/admin" class="back-btn">← Back to Dashboard</a>
+    </div>
+
+    <form action="/admin/edit/{{ news.id }}" method="POST">
+        <div class="form-group">
+            <label>News Title:</label>
+            <input type="text" name="title" required value="{{ news.title }}">
+        </div>
+        <div class="form-group">
+            <label>Source Name:</label>
+            <input type="text" name="source" value="{{ news.source or '' }}">
+        </div>
+        <div class="form-group">
+            <label>Image Link:</label>
+            <input type="url" name="image_url" value="{{ news.image_url or '' }}">
+        </div>
+        <div class="form-group">
+            <label>Detailed News:</label>
+            <textarea name="content" rows="8">{{ news.content or '' }}</textarea>
+            {% if news.url %}
+            <p class="hint">Note: this item originally came from an external link ({{ news.url }}), so the "Read More" button on the site opens that link instead of this content.</p>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label>Category:</label>
+            <select name="category">
+                {% for cat in categories %}
+                <option value="{{ cat.slug }}" {% if cat.slug == news.category %}selected{% endif %}>{{ cat.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">Save Changes</button>
+    </form>
+</div>
+
+</body>
+</html>
