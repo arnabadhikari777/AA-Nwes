@@ -1,0 +1,12 @@
+# OPTIONAL fallback if your PythonAnywhere plan has no Scheduled Tasks.
+# Needs FETCH_CRON_TOKEN (20+ chars) in mysite/.env and the same value as a GitHub secret.
+# GitHub's scheduler can run late; treat "every 30 min" as approximate.
+name: aa-news-fetch
+on:
+  schedule: [{cron: "*/30 * * * *"}]
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -X POST -H "Authorization: Bearer ${{ secrets.FETCH_CRON_TOKEN }}" https://arnabadhikari125117y.pythonanywhere.com/cron/fetch

@@ -1,0 +1,15 @@
+{# one news card: expects `a` (and optional `big`) #}
+<article class="card{% if big %} card-big{% endif %}" data-id="{{ a.id }}">
+  <a class="card-img" href="{{ a.href }}" tabindex="-1" aria-hidden="true">
+    {% if a.img %}<img src="{{ a.img }}" alt="" loading="{{ 'eager' if big else 'lazy' }}" decoding="async" referrerpolicy="no-referrer" width="640" height="360" data-fallback>
+    {% else %}<div class="img-ph">A.A.News</div>{% endif %}
+  </a>
+  <div class="card-body">
+    <div class="meta"><span class="chip">{{ a.display_source }}</span>{% if a.is_breaking %}<span class="chip chip-red">Breaking</span>{% endif %}</div>
+    <h3 class="card-title"><a href="{{ a.href }}">{{ a.title }}</a></h3>
+    <div class="card-foot">
+      {% if a.date_label %}<time datetime="{{ a.date_iso }}">{{ a.date_label }}</time>{% else %}<span></span>{% endif %}
+      <button class="save-btn" data-save="{{ a.id }}" aria-label="Save for later" aria-pressed="false">🔖</button>
+    </div>
+  </div>
+</article>

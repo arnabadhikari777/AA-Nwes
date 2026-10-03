@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ title or 'A.A.News' }}</title>
+<meta name="description" content="{{ description or config.SITE_TAGLINE }}">
+<link rel="canonical" href="{{ config.SITE_URL }}{{ request.path }}">
+{% if noindex %}<meta name="robots" content="noindex,follow">{% endif %}
+<meta property="og:site_name" content="A.A.News">
+<meta property="og:type" content="{{ og_type or 'website' }}">
+<meta property="og:title" content="{{ title or 'A.A.News' }}">
+<meta property="og:description" content="{{ description or config.SITE_TAGLINE }}">
+<meta property="og:url" content="{{ config.SITE_URL }}{{ request.path }}">
+<meta property="og:image" content="{{ og_image or (config.SITE_URL ~ '/static/img/og-default.png') }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0e1a30" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800;900&family=Noto+Serif+Bengali:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ static_v('css/style.css') }}">
+<script nonce="{{ nonce }}">try{var t=localStorage.getItem('aa_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+{% if config.GA_ID and not is_admin %}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ config.GA_ID }}"></script>
+<script nonce="{{ nonce }}">window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','{{ config.GA_ID }}');</script>
+{% endif %}
+{% block head %}{% endblock %}
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="offline-bar" hidden>You're offline. Showing saved content where available.</div>
+
+<header class="site-header">
+  <div class="masthead"><span>{{ config.SITE_NAME }} · Digital Edition</span><span class="hide-sm">Truth &amp; Accuracy, Every Day</span></div>
+  <div class="bar">
+    <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="cat-nav">☰</button>
+    <a class="logo" href="/" aria-label="A.A.News home"><span class="logo-mark">A.A.<b>News</b></span><small class="hide-sm">{{ config.SITE_TAGLINE }}</small></a>
+    <form class="search-form" action="/search" method="get" role="search" id="search-form">
+      <input type="search" name="q" id="q" placeholder="Search news…" aria-label="Search news" autocomplete="off" value="{{ f.q if f is defined else '' }}">
+      <button type="submit" aria-label="Search">🔍</button>
+      <ul id="suggest" class="suggest" hidden></ul>
+    </form>
+    <div class="actions">
+      <a class="icon-btn" href="/saved" aria-label="Saved articles" title="Saved">🔖<span class="count" id="saved-count" hidden></span></a>
+      <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Light / dark">🌙</button>
+      <button class="btn btn-sm" id="install-btn" hidden>Install app</button>
+    </div>
+  </div>
+  <nav class="cat-nav" id="cat-nav" aria-label="Categories">
+    <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+    {% for c in nav_cats if c.slug != 'all' %}
+      <a href="/section/{{ c.slug }}" {% if request.path == '/section/' ~ c.slug %}aria-current="page"{% endif %}>{{ c.label }}</a>
+    {% endfor %}
+    <a href="/history">History</a>
+  </nav>
+</header>
+
+<main id="main">{% block content %}{% endblock %}</main>
+
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div><h4 class="foot-logo">A.A.News</h4><p>Your trusted news source. Stay with us for the latest headlines across business, technology, sports and entertainment.</p></div>
+    <div><h4>Categories</h4><ul>{% for c in nav_cats if c.slug != 'all' %}<li><a href="/section/{{ c.slug }}">{{ c.label }}</a></li>{% endfor %}</ul></div>
+    <div><h4>Contact Us</h4><p><a href="mailto:{{ config.CONTACT_EMAIL }}">{{ config.CONTACT_EMAIL }}</a></p>
+      <h4 class="mt">Legal</h4><ul><li><a href="/about">About Us</a></li><li><a href="/contact">Contact</a></li><li><a href="/privacy-policy">Privacy Policy</a></li><li><a href="/terms">Terms of Use</a></li><li><a href="/login">Admin Login</a></li></ul></div>
+  </div>
+  <div class="foot-bottom"><p>&copy; {{ year }} A.A.News. All Rights Reserved.</p><p>Created by Arnab Adhikari &amp; Anubhab Dutta.</p></div>
+</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="update-bar" hidden>A new version is available. <button class="btn btn-sm" id="update-btn">Refresh</button></div>
+<script src="{{ static_v('js/app.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

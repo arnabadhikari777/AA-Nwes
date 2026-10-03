@@ -1,506 +1,694 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for
-import requests
+"""A.A.News - Flask application (upgrade of the original single-file app).
+
+Key differences from the original:
+  * NO fetching on startup or on web requests - fetching is done by tools/fetch_news.py (scheduled).
+  * Never creates / recreates / dedupes-by-deleting the database. Missing DB => clear error.
+  * All original URLs keep working (see 'Legacy routes').
+"""
+import hmac
+import logging
+import secrets
 import sqlite3
-import os
 import time
-from deep_translator import GoogleTranslator
+from datetime import datetime, timedelta, timezone
+from functools import wraps
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+
+from flask import (Flask, Response, abort, g, jsonify, make_response, redirect, render_template,
+                   request, send_from_directory, session, url_for)
+from werkzeug.security import check_password_hash
+from xml.sax.saxutils import escape
+
+import config
+import db
+import fetcher
+import queries
+import utils
 
 app = Flask(__name__)
-# Secret key for session (required for the login system)
-# Uses an environment variable if set (recommended on PythonAnywhere),
-# otherwise falls back to the original default so nothing breaks locally.
-app.secret_key = os.environ.get("SECRET_KEY", "my_super_secret_key_for_admin")
+app.secret_key = config.load_secret_key()
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=(config.ENVIRONMENT == "production"),
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+    MAX_CONTENT_LENGTH=config.MAX_UPLOAD_BYTES + 512 * 1024,
+    SEND_FILE_MAX_AGE_DEFAULT=timedelta(days=7),
+    JSON_AS_ASCII=False,
+)
 
-# Your NewsData.io API KEY (the previous one is kept)
-api_key = os.environ.get("NEWSDATA_API_KEY", "pub_1b0ed4a2b36d465c8c4d51b3f3161029")
+# ---------------------------------------------------------------- logging
+config.LOG_DIR.mkdir(parents=True, exist_ok=True)
+_h = RotatingFileHandler(config.LOG_DIR / "app.log", maxBytes=500_000, backupCount=3)
+_h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+app.logger.addHandler(_h)
+app.logger.setLevel(logging.INFO)
 
-# Absolute path to the database file, so the app works correctly
-# no matter what the current working directory is (important on PythonAnywhere).
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'news.db')
+# ---------------------------------------------------------------- database guard
+DB_PROBLEM = None
+try:
+    _c = db.connect()
+    try:
+        if db.schema_version(_c) < db.SCHEMA_VERSION:
+            DB_PROBLEM = "needs_migration"
+    finally:
+        _c.close()
+except db.DatabaseUnavailable as e:
+    DB_PROBLEM = "missing"
+    app.logger.error("DATABASE MISSING - refusing to create a new one: %s", e)
 
-# 1. Function to create the database and tables
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    # url is not kept UNIQUE here, and a content column has been added
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS news (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            source TEXT,
-            image_url TEXT,
-            url TEXT,
-            category TEXT,
-            content TEXT
-        )
-    ''')
 
-    # Categories table, so the admin can create/manage categories from the panel
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            slug TEXT UNIQUE,
-            label TEXT
-        )
-    ''')
+def get_db():
+    if "db" not in g:
+        g.db = db.connect()
+    return g.db
 
-    # Seed the default categories only if the table is empty (first run),
-    # so existing sites keep exactly the same categories as before.
-    cursor.execute("SELECT COUNT(*) FROM categories")
-    if cursor.fetchone()[0] == 0:
-        default_categories = [
-            ('all', 'All / Home'),
-            ('business', 'Business'),
-            ('technology', 'Technology'),
-            ('sports', 'Sports'),
-            ('entertainment', 'Entertainment'),
-            ('health', 'Health'),
-            ('science', 'Science'),
-        ]
-        cursor.executemany("INSERT INTO categories (slug, label) VALUES (?, ?)", default_categories)
 
+@app.teardown_appcontext
+def close_db(_exc):
+    c = g.pop("db", None)
+    if c is not None:
+        c.close()
+
+
+# ---------------------------------------------------------------- security helpers
+@app.before_request
+def guards():
+    g.nonce = secrets.token_urlsafe(16)
+    if request.endpoint == "static":
+        return None
+    if DB_PROBLEM:
+        return render_template("error.html", code=503, title="Site is being upgraded",
+                               message="The database is not ready. The site owner has been notified."), 503
+    if request.method == "POST" and request.endpoint != "cron_fetch":
+        sent = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
+        if not sent or not hmac.compare_digest(sent, session.get("csrf", "")):
+            app.logger.warning("CSRF rejected on %s", request.path)
+            abort(400)
+    return None
+
+
+def csrf_token():
+    if "csrf" not in session:
+        session["csrf"] = secrets.token_urlsafe(32)
+    return session["csrf"]
+
+
+@app.after_request
+def headers(resp):
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    resp.headers["X-Frame-Options"] = "SAMEORIGIN"
+    if request.endpoint != "static":
+        n = getattr(g, "nonce", "")
+        resp.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            f"script-src 'self' 'nonce-{n}' https://www.googletagmanager.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https: ; "
+            "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com "
+            "https://*.analytics.google.com https://www.googletagmanager.com; "
+            "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'")
+    if request.path.startswith(("/admin", "/login", "/add_news", "/logout")):
+        resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+def static_v(filename):
+    p = Path(app.static_folder) / filename
+    try:
+        v = int(p.stat().st_mtime)
+    except OSError:
+        v = 0
+    return url_for("static", filename=filename, v=v)
+
+
+@app.context_processor
+def inject():
+    try:
+        cats = queries.cached("cats", 60, lambda: queries.categories(get_db())) if not DB_PROBLEM else []
+    except Exception:
+        cats = []
+    return dict(config=config, csrf_token=csrf_token, nonce=getattr(g, "nonce", ""), nav_cats=cats,
+                static_v=static_v, is_admin=bool(session.get("is_admin")), year=datetime.now().year)
+
+
+@app.template_global()
+def pager_qs(base, page):
+    from urllib.parse import urlencode
+    d = dict(base)
+    d["page"] = page
+    return urlencode(d)
+
+
+# ---------------------------------------------------------------- admin auth
+_attempts = {}
+
+
+def client_ip():
+    xff = request.headers.get("X-Forwarded-For", "")
+    return (xff.split(",")[-1].strip() if xff else request.remote_addr) or "?"
+
+
+def locked_out(ip):
+    now = time.time()
+    hits = [t for t in _attempts.get(ip, []) if now - t < config.LOGIN_WINDOW_SECONDS]
+    _attempts[ip] = hits
+    return len(hits) >= config.LOGIN_MAX_ATTEMPTS
+
+
+def using_legacy_password():
+    return not config.ADMIN_PASSWORD_HASH
+
+
+def verify_password(pw):
+    h = config.ADMIN_PASSWORD_HASH or config.LEGACY_ADMIN_HASH
+    try:
+        return check_password_hash(h, pw or "")
+    except Exception:
+        return False
+
+
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*a, **kw):
+        if not session.get("is_admin"):
+            return redirect(url_for("login"))
+        return fn(*a, **kw)
+    return wrapper
+
+
+def log_admin(conn, action, detail=""):
+    conn.execute("INSERT INTO admin_log(at, action, detail) VALUES (?,?,?)",
+                 (db.utcnow_iso(), action, str(detail)[:300]))
     conn.commit()
-    conn.close()
 
-    # Remove any duplicate news that may already be in the database
-    # (e.g. from before this fix), keeping the oldest copy of each title.
-    dedupe_existing_news()
 
-    # Enforce uniqueness by title (case-insensitive) at the database level.
-    # This is the real fix for duplicates: even if the dedup check in the
-    # fetch functions is somehow bypassed (e.g. two server workers running
-    # at the same time), SQLite itself will now refuse a second copy.
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    try:
-        cursor.execute('''
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_news_title_unique
-            ON news (title COLLATE NOCASE)
-        ''')
-        conn.commit()
-    except sqlite3.IntegrityError:
-        # In case dedupe_existing_news() missed something, don't crash the app;
-        # duplicates just won't be fully blocked until the next cleanup pass.
-        pass
-    conn.close()
+# ================================================================ PUBLIC PAGES
+def _home_data(conn):
+    return dict(
+        hero=queries.cached("hero", 120, lambda: queries.hero_articles(conn, 3)),
+        breaking=queries.cached("breaking", 60, lambda: queries.breaking(conn, 3)),
+        trending=queries.cached("trending", 300, lambda: queries.trending(conn, 24, 5)),
+        most_read=queries.cached("most_read", 600, lambda: queries.most_read(conn, 7, 5)),
+        sections=queries.cached("sections", 180, lambda: queries.category_sections(conn, 4)),
+    )
 
-# Removes duplicate news rows (same title, case-insensitive), keeping the
-# earliest one (lowest id) of each. Safe to run every time the app starts.
-def dedupe_existing_news():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, title FROM news ORDER BY id ASC")
-    rows = cursor.fetchall()
 
-    seen_titles = set()
-    duplicate_ids = []
-    for news_id, title in rows:
-        key = (title or '').strip().lower()
-        if key in seen_titles:
-            duplicate_ids.append(news_id)
-        else:
-            seen_titles.add(key)
-
-    if duplicate_ids:
-        cursor.executemany("DELETE FROM news WHERE id=?", [(i,) for i in duplicate_ids])
-        conn.commit()
-        print(f"Removed {len(duplicate_ids)} duplicate news rows.")
-
-    conn.close()
-def get_all_categories():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT slug, label FROM categories ORDER BY id ASC")
-    rows = cursor.fetchall()
-    conn.close()
-    return [{"slug": r[0], "label": r[1]} for r in rows]
-
-# 2. Function to fetch general news and save it to the database when the server starts
-def update_news_in_db():
-    url = f"https://newsdata.io/api/1/news?apikey={api_key}&country=in"
-    try:
-        response = requests.get(url)
-        data = response.json()
-        print("Total General News from API:", len(data.get('results', [])))
-
-        if data.get('status') == 'success':
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-
-            for article in data.get('results', []):
-                title = article.get('title')
-                source = article.get('source_id')
-                image_url = article.get('image_url')
-                news_url = article.get('link')
-
-               # Logic to translate the title into English
-                # New code:
-                if title:
-                    try:
-                        title = GoogleTranslator(source='auto', target='en').translate(title)
-                    except:
-                        pass
-
-                if title and news_url:
-                    normalized_title = title.strip().lower()
-                    cursor.execute(
-                        "SELECT id FROM news WHERE url=? OR LOWER(TRIM(title))=?",
-                        (news_url, normalized_title)
-                    )
-                    if not cursor.fetchone():
-                        # INSERT OR IGNORE: if the title already exists (caught by the
-                        # unique index) this quietly does nothing instead of erroring out
-                        cursor.execute('''
-                            INSERT OR IGNORE INTO news (title, source, image_url, url, category, content)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        ''', (title, source, image_url, news_url, 'all', ''))
-            conn.commit()
-            conn.close()
-            print("Updated 'all' news in database successfully.")
-        else:
-            print("API Error:", data.get('results'))
-    except Exception as e:
-        print("There was a problem updating the database:", e)
-
-# The database will be created and updated as soon as the server starts
-init_db()
-update_news_in_db()
-
-# Tracks when 'all' news was last pulled from the API, so /get_news can
-# auto-refresh itself once an hour has passed, without needing a server restart.
-last_all_update_time = time.time()
-
-# 3. Route to display the main website
-@app.route('/')
+@app.route("/")
 def home():
-    return render_template('news_portal_frontend.html')
+    conn = get_db()
+    data = _home_data(conn)
+    hero_ids = [a["id"] for a in data["hero"]]
+    latest, total = queries.list_articles(conn, per_page=12, exclude=hero_ids)
+    last = db.get_setting(conn, "last_success_at")
+    return render_template("home.html", latest=latest, total=total, hero_ids=hero_ids,
+                           last_updated=utils.format_dt(last), **data,
+                           title="A.A.News - Latest India Headlines",
+                           description="Latest Indian headlines in business, technology, sports, entertainment, "
+                                       "health and science, updated through the day.")
 
-# 4. Route to fetch news from the database and send it to the website (for All / Home)
-# Supports infinite scrolling via ?offset= and ?limit=, and auto-refreshes
-# from the API on its own once an hour has passed (no server restart needed).
-@app.route('/get_news')
+
+@app.route("/fragment/cards")
+def fragment_cards():
+    """HTML cards for 'load more' on the homepage and for bookmarks/history pages."""
+    conn = get_db()
+    ids = request.args.get("ids")
+    if ids:
+        want = [int(x) for x in ids.split(",")[:60] if x.isdigit()]
+        items = []
+        for i in want:
+            a = queries.get_article(conn, i)
+            if a:
+                items.append(a)
+        return render_template("partials/cards.html", items=items)
+    exclude = [int(x) for x in request.args.get("exclude", "").split(",") if x.isdigit()][:10]
+    items, total = queries.list_articles(
+        conn, category=request.args.get("category"), page=request.args.get("page", 1, type=int),
+        per_page=12, exclude=exclude)
+    resp = make_response(render_template("partials/cards.html", items=items))
+    resp.headers["X-Has-More"] = "1" if request.args.get("page", 1, type=int) * 12 < total else "0"
+    return resp
+
+
+@app.route("/section/<slug>")
+def section(slug):
+    conn = get_db()
+    label = queries.category_label(conn, slug)
+    if not label:
+        abort(404)
+    page = max(1, request.args.get("page", 1, type=int))
+    items, total = queries.list_articles(conn, category=slug, page=page, per_page=12)
+    return render_template("section.html", items=items, total=total, page=page, pages=-(-total // 12),
+                           slug=slug, label=label, title=f"{label} News - A.A.News",
+                           description=f"Latest {label.lower()} headlines from India on A.A.News.")
+
+
+@app.route("/search")
+def search():
+    conn = get_db()
+    f = dict(q=(request.args.get("q") or "").strip()[:100], category=request.args.get("category") or "",
+             source=request.args.get("source") or "", date_from=request.args.get("from") or "",
+             date_to=request.args.get("to") or "", sort=request.args.get("sort") or "new")
+    page = max(1, request.args.get("page", 1, type=int))
+    popular_ok = queries.has_view_data(conn)
+    if f["sort"] not in ("new", "popular", "relevance") or (f["sort"] == "popular" and not popular_ok):
+        f["sort"] = "new"
+    if f["sort"] == "new" and f["q"] and request.args.get("sort") is None:
+        f["sort"] = "relevance" if db.has_fts(conn) else "new"
+    items, total = queries.list_articles(conn, category=f["category"], source=f["source"], q=f["q"],
+                                         date_from=f["date_from"], date_to=f["date_to"], sort=f["sort"],
+                                         page=page, per_page=12)
+    pages = -(-total // 12)
+    qs = {k: v for k, v in dict(q=f["q"], category=f["category"], source=f["source"], to=f["date_to"],
+                                sort=request.args.get("sort") or "", **{"from": f["date_from"]}).items() if v}
+    return render_template("search.html", items=items, total=total, page=page, pages=pages, f=f, qs=qs,
+                           sources=queries.cached("sources", 300, lambda: queries.sources(conn)),
+                           popular_ok=popular_ok, title="Search - A.A.News",
+                           description="Search A.A.News headlines by keyword, category, source and date.",
+                           noindex=True)
+
+
+@app.route("/api/suggest")
+def api_suggest():
+    q = (request.args.get("q") or "").strip()[:60]
+    if len(q) < 2:
+        return jsonify([])
+    return jsonify(queries.suggest(get_db(), q))
+
+
+def _record_view(conn, article):
+    if utils.is_bot(request.headers.get("User-Agent")) or request.headers.get("Purpose") == "prefetch":
+        return
+    seen = session.get("seen", [])
+    if article["id"] in seen:
+        return
+    conn.execute("INSERT INTO article_views(article_id, viewed_at) VALUES (?,?)", (article["id"], db.utcnow_iso()))
+    conn.commit()
+    session["seen"] = (seen + [article["id"]])[-40:]
+
+
+@app.route("/news/<int:article_id>")
+@app.route("/news/<int:article_id>/<slug>")
+def article(article_id, slug=None):
+    conn = get_db()
+    preview = bool(session.get("is_admin")) and request.args.get("preview") == "1"
+    a = queries.get_article(conn, article_id, include_unpublished=preview)
+    if not a:
+        abort(404)
+    if slug != a["slug"]:
+        return redirect(a["href"], 301)
+    if not preview:
+        _record_view(conn, a)
+    rel = queries.related(conn, a, 4)
+    cat_label = queries.category_label(conn, a["category"]) if a["category"] else None
+    body = utils.paragraphs(a["content"]) if a["content"] else []
+    text = " ".join(body) or (a.get("description") or "")
+    indexable = (a["is_own"] or config.INDEX_AGGREGATED) and a["status"] != "draft" and not preview
+    return render_template(
+        "article.html", a=a, related=rel, cat_label=cat_label, body=body, minutes=utils.reading_minutes(text),
+        indexable=indexable, title=f"{a['title']} - A.A.News",
+        description=(a.get("description") or (body[0] if body else a["title"]))[:180],
+        og_image=a["img"], noindex=not indexable, og_type="article")
+
+
+# ---------------- static-ish pages
+def _static_page(tpl, title, desc):
+    return render_template(tpl, title=title, description=desc)
+
+
+@app.route("/about")
+def about():
+    return _static_page("about.html", "About Us - A.A.News", "About A.A.News, our mission and editorial approach.")
+
+
+@app.route("/privacy-policy")
+def privacy_policy():
+    return _static_page("privacy.html", "Privacy Policy - A.A.News", "How A.A.News handles data and cookies.")
+
+
+@app.route("/terms")
+def terms():
+    return _static_page("terms.html", "Terms of Use - A.A.News", "Terms of use for A.A.News.")
+
+
+@app.route("/contact")
+def contact():
+    return _static_page("contact.html", "Contact - A.A.News", "How to contact the A.A.News team.")
+
+
+@app.route("/saved")
+def saved():
+    return render_template("saved.html", title="Saved articles - A.A.News", mode="saved", noindex=True,
+                           description="Articles you saved for later.")
+
+
+@app.route("/history")
+def history():
+    return render_template("saved.html", title="Reading history - A.A.News", mode="history", noindex=True,
+                           description="Articles you recently read.")
+
+
+@app.route("/offline")
+def offline():
+    return render_template("offline.html", title="Offline - A.A.News", noindex=True, description="You are offline.")
+
+
+# ---------------- Legacy routes (kept so old links / the old frontend keep working)
+@app.route("/read/<int:news_id>")
+def read_news(news_id):
+    a = queries.get_article(get_db(), news_id)
+    if not a:
+        abort(404)
+    return redirect(a["href"], 301)
+
+
+def _legacy_json(rows):
+    return jsonify([{"id": a["id"], "title": a["title"], "source": {"name": a["source"]},
+                     "urlToImage": a["image_url"], "url": a["url"]} for a in rows])
+
+
+@app.route("/get_news")
 def get_news():
-    global last_all_update_time
+    limit = min(max(request.args.get("limit", 20, type=int), 1), 100)
+    offset = max(request.args.get("offset", 0, type=int), 0)
+    items, _ = queries.list_articles(get_db(), category="all_only", page=offset // limit + 1, per_page=limit)
+    return _legacy_json(items)
 
-    # If it's been more than an hour since the last automatic pull, fetch fresh
-    # news from the API now, right here in the request, before answering.
-    if time.time() - last_all_update_time > 10:
-        update_news_in_db()
-        last_all_update_time = time.time()
 
-    limit = request.args.get('limit', default=20, type=int)
-    offset = request.args.get('offset', default=0, type=int)
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT id, title, source, image_url, url, content FROM news WHERE category='all' ORDER BY id DESC LIMIT ? OFFSET ?",
-        (limit, offset)
-    )
-    rows = cursor.fetchall()
-    conn.close()
-
-    news_list = []
-    for row in rows:
-        news_list.append({
-            "id": row[0],
-            "title": row[1],
-            "source": {"name": row[2]},
-            "urlToImage": row[3],
-            "url": row[4]
-        })
-
-    return jsonify(news_list)
-
-# 5. Route to fetch news by category (will fetch from API and save to database)
-# Supports infinite scrolling via ?offset= and ?limit=
-@app.route('/category/<cat_name>')
+@app.route("/category/<cat_name>")
 def get_category_news(cat_name):
-    limit = request.args.get('limit', default=20, type=int)
-    offset = request.args.get('offset', default=0, type=int)
+    limit = min(max(request.args.get("limit", 20, type=int), 1), 100)
+    offset = max(request.args.get("offset", 0, type=int), 0)
+    items, _ = queries.list_articles(get_db(), category=cat_name, page=offset // limit + 1, per_page=limit)
+    return _legacy_json(items)
 
-    # Only hit the external API on the first page of a category (offset 0),
-    # so scrolling further down doesn't re-fetch from the internet every time.
-    if offset == 0:
-        url = f"https://newsdata.io/api/1/news?apikey={api_key}&country=in&category={cat_name}"
 
-        try:
-            response = requests.get(url)
-            data = response.json()
-            print(f"Total {cat_name} News from API:", len(data.get('results', [])))
-
-            if data.get('status') == 'success':
-                conn = sqlite3.connect(DB_PATH)
-                cursor = conn.cursor()
-
-                for article in data.get('results', []):
-                    title = article.get('title')
-                    source = article.get('source_id')
-                    image_url = article.get('image_url')
-                    news_url = article.get('link')
-# Code to translate the title into English
-                    # New code:
-                    if title:
-                        try:
-                            title = GoogleTranslator(source='auto', target='en').translate(title)
-                        except:
-                            pass
-
-                    if title and news_url:
-                        normalized_title = title.strip().lower()
-                        cursor.execute(
-                            "SELECT id FROM news WHERE url=? OR LOWER(TRIM(title))=?",
-                            (news_url, normalized_title)
-                        )
-                        if not cursor.fetchone():
-                            cursor.execute('''
-                                INSERT OR IGNORE INTO news (title, source, image_url, url, category, content)
-                                VALUES (?, ?, ?, ?, ?, ?)
-                            ''', (title, source, image_url, news_url, cat_name, ''))
-                conn.commit()
-                conn.close()
-        except Exception as e:
-            print("Problem fetching category news from API:", e)
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute(
-        'SELECT id, title, source, image_url, url, content FROM news WHERE category=? ORDER BY id DESC LIMIT ? OFFSET ?',
-        (cat_name, limit, offset)
-    )
-    rows = cursor.fetchall()
-    conn.close()
-
-    news_list = []
-    for row in rows:
-        news_list.append({
-            "id": row[0],
-            "title": row[1],
-            "source": {"name": row[2]},
-            "urlToImage": row[3],
-            "url": row[4]
-        })
-
-    return jsonify(news_list)
-
-# Public route: returns all categories as JSON, used by the frontend to build the menu
-@app.route('/get_categories')
+@app.route("/get_categories")
 def get_categories():
-    return jsonify(get_all_categories())
+    return jsonify(queries.categories(get_db()))
 
-# 6. Login page
-@app.route('/login', methods=['GET', 'POST'])
+
+# ---------------- SEO / PWA
+@app.route("/robots.txt")
+def robots():
+    body = (f"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /login\nDisallow: /add_news\n"
+            f"Disallow: /logout\nDisallow: /search\nDisallow: /api/\nDisallow: /fragment/\n"
+            f"Sitemap: {config.SITE_URL}/sitemap.xml\n")
+    return Response(body, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    conn = get_db()
+    urls = [(f"{config.SITE_URL}/", None)]
+    urls += [(f"{config.SITE_URL}/section/{c['slug']}", None) for c in queries.categories(conn) if c["slug"] != "all"]
+    urls += [(f"{config.SITE_URL}{p}", None) for p in ("/about", "/privacy-policy", "/terms", "/contact")]
+    cond = "" if config.INDEX_AGGREGATED else " AND (n.url IS NULL OR n.url='')"
+    rows = conn.execute(
+        f"SELECT n.id, n.title, COALESCE(n.updated_at, n.published_at, n.created_at) lm FROM news n "
+        f"WHERE {queries.PUB}{cond} ORDER BY n.id DESC LIMIT 5000", (db.utcnow_iso(),)).fetchall()
+    for r in rows:
+        urls.append((f"{config.SITE_URL}/news/{r['id']}/{utils.slugify(r['title'])}", r["lm"]))
+    out = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for u, lm in urls:
+        out.append(f"<url><loc>{escape(u)}</loc>" + (f"<lastmod>{lm}</lastmod>" if lm else "") + "</url>")
+    out.append("</urlset>")
+    return Response("\n".join(out), mimetype="application/xml")
+
+
+@app.route("/manifest.webmanifest")
+def manifest():
+    resp = send_from_directory(app.static_folder, "manifest.webmanifest", mimetype="application/manifest+json")
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
+@app.route("/sw.js")
+def service_worker():
+    resp = send_from_directory(app.static_folder, "sw.js", mimetype="application/javascript")
+    resp.headers["Cache-Control"] = "no-cache, max-age=0"
+    resp.headers["Service-Worker-Allowed"] = "/"
+    return resp
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(app.static_folder, "icons/favicon.ico", mimetype="image/x-icon")
+
+
+# ================================================================ ADMIN
+@app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if password == 'ceo@2026':  # Your password is here
-            session['is_admin'] = True
-            return redirect(url_for('add_news'))
+    if request.method == "POST":
+        ip = client_ip()
+        if locked_out(ip):
+            error = "Too many attempts. Please wait 15 minutes and try again."
+        elif verify_password(request.form.get("password")):
+            session.clear()
+            session["is_admin"] = True
+            session.permanent = True
+            _attempts.pop(ip, None)
+            log_admin(get_db(), "login", "")
+            return redirect(url_for("add_news"))
         else:
+            _attempts.setdefault(ip, []).append(time.time())
+            app.logger.warning("failed admin login from %s", ip)
             error = "Wrong password! Please try again."
-    return render_template('login.html', error=error)
+    return render_template("admin/login.html", error=error, title="Admin login", noindex=True, description="")
 
-# 7. Logout
-@app.route('/logout')
+
+@app.route("/logout")
 def logout():
-    session.pop('is_admin', None)
-    return redirect(url_for('home'))
+    session.pop("is_admin", None)
+    return redirect(url_for("home"))
 
-# 8. Admin panel (for manually writing news)
-@app.route('/add_news', methods=['GET', 'POST'])
-def add_news():
-    # Login check: if not logged in, redirect straight to the login page
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
 
-    message = ""
-    if request.method == 'POST':
-        title = request.form.get('title')
-        source = request.form.get('source')
-        image_url = request.form.get('image_url')
-        content = request.form.get('content')
-        category = request.form.get('category')
+from admin_tools import (UploadError, dashboard_data, parse_local_dt, save_upload,  # noqa: E402
+                         to_local_input)
 
-        # If no image is given, a default image will be used
-        if not image_url:
-            image_url = "https://dummyimage.com/600x300/131921/ff9d00.png&text=A.A.News"
 
-        if title and content:
-            try:
-                conn = sqlite3.connect(DB_PATH)
-                cursor = conn.cursor()
-                # URL is being kept empty, because we will show the content
-                cursor.execute('''
-                    INSERT INTO news (title, source, image_url, url, category, content)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (title, source, image_url, "", category, content))
-                conn.commit()
-                conn.close()
-                message = "The news has been successfully published on the website!"
-            except Exception as e:
-                message = f"An error occurred: {e}"
-        else:
-            message = "News title and detailed content are mandatory!"
-
-    return render_template('add_news.html', message=message, categories=get_all_categories())
-
-# 8b. Admin Dashboard - shows every news item with Edit / Delete buttons,
-# plus category management (add / delete categories)
-@app.route('/admin')
-def admin_dashboard():
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('SELECT id, title, source, category FROM news ORDER BY id DESC')
-    news_rows = cursor.fetchall()
-    conn.close()
-
-    news_items = [
-        {"id": r[0], "title": r[1], "source": r[2], "category": r[3]}
-        for r in news_rows
-    ]
-
-    return render_template(
-        'admin_dashboard.html',
-        news_items=news_items,
-        categories=get_all_categories()
-    )
-
-# 8c. Edit an existing news item
-@app.route('/admin/edit/<int:news_id>', methods=['GET', 'POST'])
-def edit_news(news_id):
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    if request.method == 'POST':
-        title = request.form.get('title')
-        source = request.form.get('source')
-        image_url = request.form.get('image_url')
-        content = request.form.get('content')
-        category = request.form.get('category')
-
-        if not image_url:
-            image_url = "https://dummyimage.com/600x300/131921/ff9d00.png&text=A.A.News"
-
+def _form_article(form, files, existing=None):
+    """Validate and normalise an article form. Returns (values, error)."""
+    title = (form.get("title") or "").strip()
+    content = (form.get("content") or "").strip()
+    if not title or not content:
+        return None, "News title and detailed content are mandatory!"
+    image = (form.get("image_url") or "").strip()
+    up = files.get("image_file")
+    if up and up.filename:
         try:
-            cursor.execute('''
-                UPDATE news
-                SET title=?, source=?, image_url=?, content=?, category=?
-                WHERE id=?
-            ''', (title, source, image_url, content, category, news_id))
-            conn.commit()
-            conn.close()
-            return redirect(url_for('admin_dashboard'))
-        except sqlite3.IntegrityError:
-            conn.close()
-            # Happens if the new title matches another existing news item's title
-            error = "A news item with this exact title already exists. Please change the title slightly."
-            news_item = {
-                "id": news_id, "title": title, "source": source,
-                "image_url": image_url, "url": "", "category": category, "content": content
-            }
-            return render_template('edit_news.html', news=news_item, categories=get_all_categories(), error=error)
+            image = save_upload(up)
+        except UploadError as e:
+            return None, str(e)
+    if image and not (image.startswith(("http://", "https://", "/static/uploads/"))):
+        return None, "Image URL must start with http(s)://"
+    if not image:
+        image = (existing or {}).get("image_url") or "https://dummyimage.com/600x300/131921/ff9d00.png&text=A.A.News"
+    status = "draft" if form.get("status") == "draft" else "published"
+    publish_at = parse_local_dt(form.get("publish_at"))
+    return dict(title=title[:300], source=(form.get("source") or "").strip()[:100] or "A.A.News Exclusive",
+                image_url=image, content=content, category=(form.get("category") or "all"),
+                description=(form.get("description") or "").strip()[:400] or None,
+                author=(form.get("author") or "").strip()[:100] or None, status=status, publish_at=publish_at,
+                is_featured=1 if form.get("is_featured") else 0,
+                is_breaking=1 if form.get("is_breaking") else 0), None
 
-    cursor.execute('SELECT id, title, source, image_url, url, category, content FROM news WHERE id=?', (news_id,))
-    row = cursor.fetchone()
-    conn.close()
 
-    if not row:
-        return "News not found!", 404
-
-    news_item = {
-        "id": row[0], "title": row[1], "source": row[2],
-        "image_url": row[3], "url": row[4], "category": row[5], "content": row[6]
-    }
-
-    return render_template('edit_news.html', news=news_item, categories=get_all_categories())
-
-# 8d. Delete a news item
-@app.route('/admin/delete/<int:news_id>', methods=['POST'])
-def delete_news(news_id):
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM news WHERE id=?', (news_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('admin_dashboard'))
-
-# 8e. Add a new category
-@app.route('/admin/add_category', methods=['POST'])
-def add_category():
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-
-    label = (request.form.get('label') or '').strip()
-    if label:
-        # Build a simple slug: lowercase, spaces -> hyphens, only letters/numbers/hyphens kept
-        slug = ''.join(c if c.isalnum() else '-' for c in label.lower()).strip('-')
-        while '--' in slug:
-            slug = slug.replace('--', '-')
-
-        if slug:
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
+@app.route("/add_news", methods=["GET", "POST"])
+@admin_required
+def add_news():
+    conn = get_db()
+    message = ""
+    if request.method == "POST":
+        v, err = _form_article(request.form, request.files)
+        if err:
+            message = err
+        else:
+            now = db.utcnow_iso()
             try:
-                cursor.execute("INSERT INTO categories (slug, label) VALUES (?, ?)", (slug, label))
+                cur = conn.execute(
+                    "INSERT INTO news (title, source, image_url, url, category, content, description, author, status, "
+                    "publish_at, is_featured, is_breaking, created_at, published_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (v["title"], v["source"], v["image_url"], "", v["category"], v["content"], v["description"],
+                     v["author"], v["status"], v["publish_at"], v["is_featured"], v["is_breaking"], now,
+                     v["publish_at"] or now))
                 conn.commit()
+                log_admin(conn, "create_article", f"id={cur.lastrowid}")
+                queries.clear_cache()
+                message = ("Saved as draft." if v["status"] == "draft"
+                           else "The news has been successfully published on the website!")
             except sqlite3.IntegrityError:
-                pass  # category with this slug already exists, ignore silently
-            conn.close()
+                message = "A news item with this exact title already exists. Please change the title slightly."
+    return render_template("admin/add_news.html", message=message, categories=queries.categories(conn),
+                           title="Add news", noindex=True, description="")
 
-    return redirect(url_for('admin_dashboard'))
 
-# 8f. Delete a category (any news in it is moved back to 'all' so nothing is lost)
-@app.route('/admin/delete_category/<slug>', methods=['POST'])
+@app.route("/admin")
+@admin_required
+def admin_dashboard():
+    conn = get_db()
+    d = dashboard_data(conn)
+    return render_template("admin/dashboard.html", categories=queries.categories(conn), legacy_pw=using_legacy_password(),
+                           title="Admin dashboard", noindex=True, description="", **d)
+
+
+@app.route("/admin/edit/<int:news_id>", methods=["GET", "POST"])
+@admin_required
+def edit_news(news_id):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM news WHERE id=?", (news_id,)).fetchone()
+    if not row:
+        abort(404)
+    cur = dict(row)
+    error = None
+    if request.method == "POST":
+        v, error = _form_article(request.form, request.files, cur)
+        if not error:
+            try:
+                conn.execute(
+                    "UPDATE news SET title=?, source=?, image_url=?, content=?, category=?, description=?, author=?, "
+                    "status=?, publish_at=?, is_featured=?, is_breaking=?, updated_at=? WHERE id=?",
+                    (v["title"], v["source"], v["image_url"], v["content"], v["category"], v["description"], v["author"],
+                     v["status"], v["publish_at"], v["is_featured"], v["is_breaking"], db.utcnow_iso(), news_id))
+                conn.commit()
+                log_admin(conn, "edit_article", f"id={news_id}")
+                queries.clear_cache()
+                return redirect(url_for("admin_dashboard"))
+            except sqlite3.IntegrityError:
+                error = "A news item with this exact title already exists. Please change the title slightly."
+        cur.update(request.form.to_dict())
+    cur["publish_at_local"] = to_local_input(cur.get("publish_at"))
+    return render_template("admin/edit_news.html", news=cur, error=error, categories=queries.categories(conn),
+                           title="Edit news", noindex=True, description="")
+
+
+@app.route("/admin/delete/<int:news_id>", methods=["POST"])
+@admin_required
+def delete_news(news_id):
+    conn = get_db()
+    conn.execute("DELETE FROM news WHERE id=?", (news_id,))
+    conn.commit()
+    log_admin(conn, "delete_article", f"id={news_id}")
+    queries.clear_cache()
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/toggle/<int:news_id>/<flag>", methods=["POST"])
+@admin_required
+def toggle_flag(news_id, flag):
+    if flag not in ("is_featured", "is_breaking"):
+        abort(400)
+    conn = get_db()
+    conn.execute(f"UPDATE news SET {flag} = 1 - {flag}, updated_at=? WHERE id=?", (db.utcnow_iso(), news_id))
+    conn.commit()
+    log_admin(conn, "toggle_" + flag, f"id={news_id}")
+    queries.clear_cache()
+    return redirect(request.referrer or url_for("admin_dashboard"))
+
+
+@app.route("/admin/add_category", methods=["POST"])
+@admin_required
+def add_category():
+    label = (request.form.get("label") or "").strip()[:40]
+    if label:
+        slug = utils.slugify(label, 40)
+        conn = get_db()
+        try:
+            conn.execute("INSERT INTO categories (slug, label) VALUES (?, ?)", (slug, label))
+            conn.commit()
+            log_admin(conn, "add_category", slug)
+            queries.clear_cache()
+        except sqlite3.IntegrityError:
+            pass
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/delete_category/<slug>", methods=["POST"])
+@admin_required
 def delete_category(slug):
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-
-    # The 'all' category is the site's default feed and cannot be removed
-    if slug != 'all':
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE news SET category='all' WHERE category=?", (slug,))
-        cursor.execute("DELETE FROM categories WHERE slug=?", (slug,))
+    if slug != "all":  # same rule as the original; its news moves to 'all', nothing is lost
+        conn = get_db()
+        conn.execute("UPDATE news SET category='all' WHERE category=?", (slug,))
+        conn.execute("DELETE FROM categories WHERE slug=?", (slug,))
         conn.commit()
-        conn.close()
+        log_admin(conn, "delete_category", slug)
+        queries.clear_cache()
+    return redirect(url_for("admin_dashboard"))
 
-    return redirect(url_for('admin_dashboard'))
 
-# 9. Page for reading self-written news
-@app.route('/read/<int:news_id>')
-def read_news(news_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('SELECT title, source, image_url, content FROM news WHERE id=?', (news_id,))
-    news = cursor.fetchone()
-    conn.close()
+@app.route("/admin/fetch_now", methods=["POST"])
+@admin_required
+def fetch_now():
+    conn = get_db()
+    last = float(db.get_setting(conn, "manual_fetch_ts", "0") or 0)
+    wait = int(config.MANUAL_FETCH_COOLDOWN - (time.time() - last))
+    if wait > 0:
+        session["flash"] = f"Please wait {wait}s before fetching again."
+        return redirect(url_for("admin_dashboard"))
+    db.set_setting(conn, "manual_fetch_ts", time.time())
+    conn.commit()
+    if not config.NEWSDATA_API_KEY:
+        session["flash"] = "NEWSDATA_API_KEY is not configured on the server."
+        return redirect(url_for("admin_dashboard"))
+    s = fetcher.run("manual")
+    log_admin(conn, "fetch_now", f"{s['status']} new={s['new_saved']}")
+    queries.clear_cache()
+    session["flash"] = (f"Fetch {s['status']}: {s['new_saved']} new, {s['duplicates']} duplicates skipped."
+                        + (" See error log below." if s["error"] else ""))
+    return redirect(url_for("admin_dashboard"))
 
-    if news:
-        return render_template('read_news.html', news=news)
-    else:
-        return "News not found!", 404
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
+@app.route("/cron/fetch", methods=["POST"])
+def cron_fetch():
+    """OPTIONAL. Disabled unless FETCH_CRON_TOKEN is set. For an external scheduler (cron-job.org,
+    GitHub Actions) when PythonAnywhere Scheduled Tasks are not available on your plan."""
+    token = config.env("FETCH_CRON_TOKEN")
+    given = (request.headers.get("Authorization") or "").removeprefix("Bearer ").strip()
+    if not token or len(token) < 20 or not hmac.compare_digest(given, token):
+        abort(404)
+    conn = get_db()
+    last = float(db.get_setting(conn, "cron_fetch_ts", "0") or 0)
+    if time.time() - last < 20 * 60:
+        return jsonify(status="skipped", reason="ran recently"), 429
+    db.set_setting(conn, "cron_fetch_ts", time.time())
+    conn.commit()
+    s = fetcher.run("scheduled")
+    queries.clear_cache()
+    return jsonify({k: s[k] for k in ("status", "new_saved", "duplicates", "api_calls")})
 
-@app.route('/privacy-policy')
-def privacy_policy():
-    return render_template('privacy.html')
 
-if __name__ == '__main__':
-    # This block only runs when you start the app locally with `python app.py`.
-    # PythonAnywhere does NOT use this block — it imports the `app` object
-    # directly through the WSGI configuration file instead.
-    app.run(debug=True)
+# ================================================================ errors
+@app.errorhandler(404)
+def not_found(_e):
+    return render_template("error.html", code=404, title="Page not found",
+                           message="We couldn't find that page. It may have moved or been removed."), 404
+
+
+@app.errorhandler(400)
+def bad_request(_e):
+    return render_template("error.html", code=400, title="Request not accepted",
+                           message="Your request could not be verified. Please go back, refresh and try again."), 400
+
+
+@app.errorhandler(413)
+def too_large(_e):
+    return render_template("error.html", code=413, title="File too large",
+                           message="That upload is too large."), 413
+
+
+@app.errorhandler(Exception)
+def server_error(e):
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        return render_template("error.html", code=e.code, title=e.name, message=e.description), e.code
+    app.logger.exception("unhandled error on %s", request.path)
+    return render_template("error.html", code=500, title="Something went wrong",
+                           message="An unexpected error occurred. Please try again shortly."), 500
+
+
+if __name__ == "__main__":
+    app.run(debug=(config.ENVIRONMENT == "development"))

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block head %}
+{% if a.is_own or indexable %}
+<script type="application/ld+json" nonce="{{ nonce }}">{{ {
+ "@context":"https://schema.org","@type":"NewsArticle","headline":a.title[:110],
+ "mainEntityOfPage":config.SITE_URL ~ a.href,
+ "image":[a.img] if a.img else [],
+ "datePublished":a.date_iso,
+ "dateModified":a.updated_at or a.date_iso,
+ "author":[{"@type":"Person","name":a.author}] if a.author else [{"@type":"Organization","name":a.display_source}],
+ "publisher":{"@type":"Organization","name":"A.A.News","logo":{"@type":"ImageObject","url":config.SITE_URL ~ "/static/icons/icon-512.png"}}
+} | tojson }}</script>
+{% endif %}
+{% endblock %}
+{% block content %}
+<article class="article-wrap" id="article" data-id="{{ a.id }}">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a>{% if cat_label and a.category != 'all' %} › <a href="/section/{{ a.category }}">{{ cat_label }}</a>{% endif %}</nav>
+  <div class="meta">{% if cat_label and a.category != 'all' %}<a class="chip chip-red" href="/section/{{ a.category }}">{{ cat_label }}</a>{% endif %}<span class="chip">{{ a.display_source }}</span>{% if a.status == 'draft' %}<span class="chip">Draft preview</span>{% endif %}</div>
+  <h1 class="a-title">{{ a.title }}</h1>
+  <div class="byline">
+    {% if a.author %}<span>By {{ a.author }}</span>{% endif %}
+    {% if a.date_label %}<time datetime="{{ a.date_iso }}">{{ a.date_label }}</time>{% endif %}
+    {% if minutes %}<span>{{ minutes }} min read</span>{% endif %}
+  </div>
+  <div class="tools" role="toolbar" aria-label="Article tools">
+    <button class="btn btn-ghost btn-sm" data-save="{{ a.id }}" aria-pressed="false"><span class="save-label">🔖 Save</span></button>
+    <button class="btn btn-ghost btn-sm" id="share-btn" data-title="{{ a.title }}">Share</button>
+    <button class="btn btn-ghost btn-sm" id="copy-btn">Copy link</button>
+    <span class="fs" aria-label="Text size"><button class="btn btn-ghost btn-sm" data-fs="-1" aria-label="Smaller text">A−</button><button class="btn btn-ghost btn-sm" data-fs="1" aria-label="Larger text">A+</button></span>
+  </div>
+  {% if a.img %}<figure class="a-hero"><img src="{{ a.img }}" alt="{{ a.title }}" width="1200" height="675" decoding="async" referrerpolicy="no-referrer" data-fallback></figure>{% endif %}
+  <div class="a-body" id="a-body">
+    {% if a.description and not body %}<p class="lede">{{ a.description }}</p>{% endif %}
+    {% for p in body %}<p>{{ p }}</p>{% endfor %}
+    {% if not a.is_own %}
+      {% if not a.description %}<p class="notice">A.A.News shows the headline, image and source for stories from partner feeds. The full story is published by {{ a.display_source }}.</p>{% endif %}
+      <p><a class="btn" href="{{ a.url }}" target="_blank" rel="noopener noreferrer nofollow">Read the full story at {{ a.display_source }} ↗</a></p>
+    {% endif %}
+  </div>
+  {% if cat_label and a.category != 'all' %}<p><a href="/section/{{ a.category }}">← More {{ cat_label }} news</a></p>{% endif %}
+</article>
+{% if related %}
+<section class="wrap related" aria-labelledby="rel-h"><h2 class="sec-title" id="rel-h">Related news</h2>
+  <div class="grid grid-4">{% for a in related %}{% include 'partials/card.html' %}{% endfor %}</div></section>
+{% endif %}
+{% endblock %}

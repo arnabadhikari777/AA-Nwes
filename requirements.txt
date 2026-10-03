@@ -1,0 +1,5 @@
+Flask>=3.0,<4
+requests>=2.31
+Pillow>=10.0
+deep-translator>=1.11
+tzdata

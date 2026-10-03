@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="wrap">
+  <h1 class="page-title">{{ 'Saved for later' if mode == 'saved' else 'Reading history' }}</h1>
+  <p class="muted">{% if mode == 'saved' %}Saved on this device only. No account needed.{% else %}Recently opened stories, stored on this device only.{% endif %}</p>
+  <div class="grid" id="local-grid" data-mode="{{ mode }}"></div>
+  <div class="empty" id="local-empty" hidden><h3>Nothing here yet</h3><p>{% if mode == 'saved' %}Tap the 🔖 on any story to keep it here.{% else %}Stories you open will appear here.{% endif %}</p></div>
+  <p><button class="btn btn-ghost" id="local-clear" hidden>Clear {{ 'saved' if mode == 'saved' else 'history' }}</button></p>
+</div>
+{% endblock %}
