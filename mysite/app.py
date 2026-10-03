@@ -4,7 +4,6 @@ import sqlite3
 import os
 import hmac
 import time
-from deep_translator import GoogleTranslator
 from dotenv import load_dotenv
 
 # Absolute path to the project folder, so the app works correctly
@@ -35,6 +34,9 @@ api_key = get_required_env("NEWSDATA_API_KEY")
 
 # Admin login password - comes from .env
 ADMIN_PASSWORD = get_required_env("ADMIN_PASSWORD")
+
+# Secret token that protects the scheduled /cron/fetch link - comes from .env
+CRON_TOKEN = get_required_env("CRON_TOKEN")
 
 # Absolute path to the database file, so the app works correctly
 # no matter what the current working directory is (important on PythonAnywhere).
@@ -137,60 +139,130 @@ def get_all_categories():
     conn.close()
     return [{"slug": r[0], "label": r[1]} for r in rows]
 
-# 2. Function to fetch general news and save it to the database when the server starts
-def update_news_in_db():
-    url = f"https://newsdata.io/api/1/news?apikey={api_key}&country=in"
+# ---------------------------------------------------------------------------
+# 2. News fetching (runs ONLY from the scheduled /cron/fetch route)
+# ---------------------------------------------------------------------------
+
+# Only these two languages are allowed on the site.
+# NewsData.io language codes: en = English, bn = Bengali.
+API_LANGUAGES = "en,bn"
+ALLOWED_API_LANGUAGE_NAMES = {"english", "bengali"}
+
+# Categories that NewsData.io actually understands. Custom categories that the
+# admin creates by hand are skipped by the scheduled fetch (they hold manual news).
+NEWSDATA_CATEGORIES = {
+    "business", "entertainment", "environment", "food", "health", "politics",
+    "science", "sports", "technology", "top", "tourism", "world",
+}
+
+DEFAULT_IMAGE = "https://dummyimage.com/600x300/131921/ff9d00.png&text=A.A.News"
+
+
+def is_english_or_bengali(text):
+    """Safety net on top of the API language filter.
+
+    The API sometimes mislabels a story, so we also look at the actual letters
+    of the headline: it must be (almost) entirely Bengali script or Latin
+    (English) letters. Hindi, Urdu, Arabic, Chinese, etc. are rejected.
+    """
+    if not text:
+        return False
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return False
+    bengali = sum(1 for c in letters if '\u0980' <= c <= '\u09FF')
+    latin = sum(1 for c in letters if c.isascii())
+    other = len(letters) - bengali - latin
+    return other / len(letters) <= 0.1 and (bengali + latin) > 0
+
+
+def fetch_and_store(category=None):
+    """Pull one batch of news from NewsData.io and save it in the database.
+
+    Returns a dict like {"category": "all", "saved": 7, "skipped": 3}.
+    Nothing is translated: English stories stay English and Bengali stories
+    stay Bengali, exactly as the publisher wrote them.
+    """
+    params = {
+        "apikey": api_key,
+        "country": "in",
+        "language": API_LANGUAGES,
+    }
+    if category and category != "all":
+        params["category"] = category
+
+    response = requests.get("https://newsdata.io/api/1/news", params=params, timeout=20)
+    data = response.json()
+
+    if data.get("status") != "success":
+        raise RuntimeError(f"NewsData API error: {data.get('results')}")
+
+    save_as = category or "all"
+    saved = 0
+    skipped = 0
+
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     try:
-        response = requests.get(url)
-        data = response.json()
-        print("Total General News from API:", len(data.get('results', [])))
+        cursor = conn.cursor()
+        for article in data.get("results", []):
+            title = (article.get("title") or "").strip()
+            news_url = article.get("link")
+            language = (article.get("language") or "").strip().lower()
 
-        if data.get('status') == 'success':
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
+            # Language filter: API label first, then the real letters as a safety net
+            if language and language not in ALLOWED_API_LANGUAGE_NAMES:
+                skipped += 1
+                continue
+            if not title or not news_url or not is_english_or_bengali(title):
+                skipped += 1
+                continue
 
-            for article in data.get('results', []):
-                title = article.get('title')
-                source = article.get('source_id')
-                image_url = article.get('image_url')
-                news_url = article.get('link')
+            cursor.execute(
+                "SELECT id FROM news WHERE url=? OR LOWER(TRIM(title))=?",
+                (news_url, title.lower())
+            )
+            if cursor.fetchone():
+                skipped += 1
+                continue
 
-               # Logic to translate the title into English
-                # New code:
-                if title:
-                    try:
-                        title = GoogleTranslator(source='auto', target='en').translate(title)
-                    except:
-                        pass
+            # INSERT OR IGNORE: the unique title index quietly blocks duplicates
+            cursor.execute(
+                """
+                INSERT OR IGNORE INTO news (title, source, image_url, url, category, content)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (title, article.get("source_id"), article.get("image_url") or DEFAULT_IMAGE,
+                 news_url, save_as, "")
+            )
+            saved += cursor.rowcount
+        conn.commit()
+    finally:
+        conn.close()
 
-                if title and news_url:
-                    normalized_title = title.strip().lower()
-                    cursor.execute(
-                        "SELECT id FROM news WHERE url=? OR LOWER(TRIM(title))=?",
-                        (news_url, normalized_title)
-                    )
-                    if not cursor.fetchone():
-                        # INSERT OR IGNORE: if the title already exists (caught by the
-                        # unique index) this quietly does nothing instead of erroring out
-                        cursor.execute('''
-                            INSERT OR IGNORE INTO news (title, source, image_url, url, category, content)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        ''', (title, source, image_url, news_url, 'all', ''))
-            conn.commit()
-            conn.close()
-            print("Updated 'all' news in database successfully.")
-        else:
-            print("API Error:", data.get('results'))
-    except Exception as e:
-        print("There was a problem updating the database:", e)
+    return {"category": save_as, "saved": saved, "skipped": skipped}
 
-# The database will be created and updated as soon as the server starts
+
+def pick_categories_for_this_run(full=False):
+    """Decides which categories to fetch in one scheduled run.
+
+    Every run fetches 'all'. To save the free API credits, ONE extra category
+    is fetched per run, rotating through the list every 30 minutes:
+    2 API calls x 48 runs = 96 calls per day.
+    Pass full=True (/cron/fetch?full=1) to fetch every category once.
+    """
+    site_categories = [c["slug"] for c in get_all_categories()]
+    rotating = [c for c in site_categories if c in NEWSDATA_CATEGORIES]
+    if full:
+        return ["all"] + rotating
+    picks = ["all"]
+    if rotating:
+        picks.append(rotating[int(time.time() // 1800) % len(rotating)])
+    return picks
+
+
+# The database tables are created when the server starts.
+# (No news is fetched here any more - the scheduled job does that.)
 init_db()
-update_news_in_db()
-
-# Tracks when 'all' news was last pulled from the API, so /get_news can
-# auto-refresh itself once an hour has passed, without needing a server restart.
-last_all_update_time = time.time()
 
 # 3. Route to display the main website
 @app.route('/')
@@ -198,18 +270,10 @@ def home():
     return render_template('news_portal_frontend.html')
 
 # 4. Route to fetch news from the database and send it to the website (for All / Home)
-# Supports infinite scrolling via ?offset= and ?limit=, and auto-refreshes
-# from the API on its own once an hour has passed (no server restart needed).
+# Supports infinite scrolling via ?offset= and ?limit=.
+# This route only READS the database; fresh news arrives via /cron/fetch.
 @app.route('/get_news')
 def get_news():
-    global last_all_update_time
-
-    # If it's been more than an hour since the last automatic pull, fetch fresh
-    # news from the API now, right here in the request, before answering.
-    if time.time() - last_all_update_time > 10:
-        update_news_in_db()
-        last_all_update_time = time.time()
-
     limit = request.args.get('limit', default=20, type=int)
     offset = request.args.get('offset', default=0, type=int)
 
@@ -234,55 +298,12 @@ def get_news():
 
     return jsonify(news_list)
 
-# 5. Route to fetch news by category (will fetch from API and save to database)
+# 5. Route to read news of one category from the database
 # Supports infinite scrolling via ?offset= and ?limit=
 @app.route('/category/<cat_name>')
 def get_category_news(cat_name):
     limit = request.args.get('limit', default=20, type=int)
     offset = request.args.get('offset', default=0, type=int)
-
-    # Only hit the external API on the first page of a category (offset 0),
-    # so scrolling further down doesn't re-fetch from the internet every time.
-    if offset == 0:
-        url = f"https://newsdata.io/api/1/news?apikey={api_key}&country=in&category={cat_name}"
-
-        try:
-            response = requests.get(url)
-            data = response.json()
-            print(f"Total {cat_name} News from API:", len(data.get('results', [])))
-
-            if data.get('status') == 'success':
-                conn = sqlite3.connect(DB_PATH)
-                cursor = conn.cursor()
-
-                for article in data.get('results', []):
-                    title = article.get('title')
-                    source = article.get('source_id')
-                    image_url = article.get('image_url')
-                    news_url = article.get('link')
-# Code to translate the title into English
-                    # New code:
-                    if title:
-                        try:
-                            title = GoogleTranslator(source='auto', target='en').translate(title)
-                        except:
-                            pass
-
-                    if title and news_url:
-                        normalized_title = title.strip().lower()
-                        cursor.execute(
-                            "SELECT id FROM news WHERE url=? OR LOWER(TRIM(title))=?",
-                            (news_url, normalized_title)
-                        )
-                        if not cursor.fetchone():
-                            cursor.execute('''
-                                INSERT OR IGNORE INTO news (title, source, image_url, url, category, content)
-                                VALUES (?, ?, ?, ?, ?, ?)
-                            ''', (title, source, image_url, news_url, cat_name, ''))
-                conn.commit()
-                conn.close()
-        except Exception as e:
-            print("Problem fetching category news from API:", e)
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -309,6 +330,26 @@ def get_category_news(cat_name):
 @app.route('/get_categories')
 def get_categories():
     return jsonify(get_all_categories())
+
+# Scheduled fetch: called every 30 minutes by cron-job.org, even when nobody
+# is visiting the site. Protected by a secret token that lives in .env.
+@app.route('/cron/fetch')
+def cron_fetch():
+    token = request.args.get('token', '')
+    if not hmac.compare_digest(token.encode('utf-8'), CRON_TOKEN.encode('utf-8')):
+        return jsonify({"status": "forbidden"}), 403
+
+    full = request.args.get('full') == '1'
+    results = []
+    for cat in pick_categories_for_this_run(full=full):
+        try:
+            results.append(fetch_and_store(cat))
+        except Exception as e:
+            results.append({"category": cat, "error": str(e)})
+
+    ok = any("error" not in r for r in results)
+    print("Scheduled fetch:", results)
+    return jsonify({"status": "ok" if ok else "failed", "results": results}), (200 if ok else 502)
 
 # 6. Login page
 @app.route('/login', methods=['GET', 'POST'])

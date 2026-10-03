@@ -116,6 +116,7 @@ cp .env.example .env
 ```
 
 The `.env` file is private and is never uploaded to GitHub.
+`CRON_TOKEN` protects the scheduled fetch link (`/cron/fetch?token=...`).
 
 ### 4. Run the app
 
@@ -171,3 +172,16 @@ This project is open source. Feel free to fork, learn from, and improve it.
 [Live Demo](https://arnabadhikari125117y.pythonanywhere.com) · [Arnab's GitHub](https://github.com/arnabadhikari777) · [Anubhab's GitHub](https://github.com/duttaanubhab777-code)
 
 </div>
+
+
+---
+
+## Scheduled news fetch
+
+News is fetched only by a scheduler (cron-job.org), every 30 minutes, even when
+nobody is visiting the site:
+
+    https://YOUR-SITE/cron/fetch?token=YOUR_CRON_TOKEN
+
+Only English and Bengali stories are saved (no translation is applied).
+Add `&full=1` to fetch every category once.
