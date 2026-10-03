@@ -1,9 +1,102 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="wrap narrow prose">
-<h1 class="page-title">Privacy Policy</h1>
-<p class="muted">Last updated: August 26, 2026</p>
-<p>Welcome to <strong>A.A.News</strong> (arnabadhikari125117y.pythonanywhere.com). Protecting the personal information and privacy of our readers is one of our highest priorities. This Privacy Policy document details the types of information we collect when you visit our website, how we use that information, and the measures we take to keep it secure.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - A.A.News</title>
+
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-M4Q795Q81V');
+    </script>
+
+    <style>
+        :root {
+            --primary-color: #d32f2f;
+            --text-color: #333;
+            --bg-color: #f4f7f6;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.8; 
+            padding: 0; 
+            margin: 0;
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+        }
+        .header-banner {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 50px 20px;
+            margin-bottom: 40px;
+        }
+        .header-banner h1 { margin: 0; font-size: 40px; font-weight: 700; letter-spacing: 1px;}
+        .header-banner p { font-size: 16px; margin-top: 15px; opacity: 0.9; font-weight: 300;}
+        
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto 50px auto; 
+            background: #ffffff; 
+            padding: 50px 60px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+        }
+        h2 { 
+            color: var(--primary-color); 
+            margin-top: 40px; 
+            font-size: 24px; 
+            border-bottom: 2px solid #fce4e4; 
+            padding-bottom: 12px; 
+        }
+        p { font-size: 16px; color: #555; text-align: justify; margin-bottom: 20px;}
+        ul { padding-left: 20px; color: #555; font-size: 16px;}
+        li { margin-bottom: 12px; }
+        
+        /* New design for the back button */
+        .back-btn-container {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .back-btn { 
+            display: inline-block; 
+            padding: 14px 30px; 
+            background-color: var(--primary-color); 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            transition: all 0.3s ease;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .back-btn:hover { 
+            background-color: #b71c1c; 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 15px rgba(211,47,47,0.3); 
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 30px 20px; margin: 15px; }
+            .header-banner h1 { font-size: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-banner">
+        <h1>Privacy Policy</h1>
+        <p>Last Updated: August 26, 2026</p>
+    </div>
+
+    <div class="container">
+        <p>Welcome to <strong>A.A.News</strong> (arnabadhikari125117y.pythonanywhere.com). Protecting the personal information and privacy of our readers is one of our highest priorities. This Privacy Policy document details the types of information we collect when you visit our website, how we use that information, and the measures we take to keep it secure.</p>
 
         <h2>1. Log Files and Browsing Data</h2>
         <p>Like most standard websites, A.A.News utilizes log files automatically. The general data collected through these log files includes:</p>
@@ -41,5 +134,12 @@
 
         <h2>8. Updates to this Privacy Policy</h2>
         <p>We reserve the right to update or change our Privacy Policy at any time, especially to reflect changes in technology or law. Any significant changes will be prominently posted on this page.</p>
-</div>
-{% endblock %}
+
+        <!-- Return to homepage button -->
+        <div class="back-btn-container">
+            <a href="/" class="back-btn">🏠 Return to Homepage</a>
+        </div>
+    </div>
+
+</body>
+</html>

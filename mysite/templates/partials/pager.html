@@ -1,8 +1,0 @@
-{% if pages > 1 %}
-<nav class="pager" aria-label="Pagination">
-  {% set base = qs if qs is defined else {} %}
-  {% if page > 1 %}<a class="btn btn-ghost" rel="prev" href="?{{ pager_qs(base, page - 1) }}">← Newer</a>{% endif %}
-  <span>Page {{ page }} of {{ pages }}</span>
-  {% if page < pages %}<a class="btn btn-ghost" rel="next" href="?{{ pager_qs(base, page + 1) }}">Older →</a>{% endif %}
-</nav>
-{% endif %}

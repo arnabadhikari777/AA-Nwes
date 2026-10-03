@@ -1,24 +1,21 @@
+# Secrets
 .env
-*.db
-*.db-journal
-*.db-wal
-*.db-shm
-mysite/instance/
-mysite/logs/
-mysite/static/uploads/*
-!mysite/static/uploads/.gitkeep
+*.env
+!.env.example
+
+# Python
 __pycache__/
 *.pyc
 venv/
 .venv/
-.virtualenvs/
-.cache/
-.local/
-.ipython/
+
+# PythonAnywhere / personal home-directory files (never commit these)
 .bashrc
 .profile
 .gitconfig
 .vimrc
 .pythonstartup.py
-*.bak
-aa_news_backups/
+.cache/
+.local/
+.ipython/
+.virtualenvs/

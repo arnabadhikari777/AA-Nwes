@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - A.A.News</title>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-M4Q795Q81V');
+</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0e1a30;
+            --navy-soft: #16223c;
+            --crimson: #e6314b;
+            --gold: #f2a71b;
+            --cream: #f6f2e9;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #eee7d6 100%);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .admin-container {
+            background-color: #fffdf9;
+            padding: 34px;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(14,26,48,0.14);
+            width: 100%;
+            max-width: 640px;
+            border-top: 5px solid var(--gold);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #eee2c4;
+        }
+        .header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--navy);
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+        }
+        .logout-btn {
+            background: linear-gradient(120deg, var(--crimson), #b81d36);
+            color: white;
+            text-decoration: none;
+            padding: 9px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .logout-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: var(--navy);
+            font-size: 13.5px;
+            letter-spacing: 0.2px;
+        }
+        input[type="text"], input[type="url"], select, textarea {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid #ddd6c6;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(242,167,27,0.22);
+        }
+        textarea { resize: vertical; }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(120deg, var(--gold), #ff8a3d);
+            border: none;
+            color: var(--navy);
+            font-size: 15px;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        button[type="submit"]:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+        .message {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .success { background-color: #dff5e8; color: #146c3a; border: 1px solid #b7e6c8; }
+        .error { background-color: #fdeaec; color: #b81d36; border: 1px solid #f6c6cd; }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            color: var(--navy-soft);
+            font-weight: 700;
+            font-size: 13.5px;
+        }
+        .back-link:hover { color: var(--crimson); }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <div class="header">
+        <h2>📝 Write News</h2>
+        <div style="display:flex; gap:8px;">
+            <a href="/admin" class="logout-btn" style="background:linear-gradient(120deg,#0e1a30,#16223c);">Dashboard</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    {% if message %}
+        <div class="message {% if 'successful' in message %}success{% else %}error{% endif %}">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    <form action="/add_news" method="POST">
+        <div class="form-group">
+            <label>News Title:</label>
+            <input type="text" name="title" required placeholder="e.g.: New rule effective from today...">
+        </div>
+        <div class="form-group">
+            <label>Source Name:</label>
+            <input type="text" name="source" value="A.A.News Exclusive">
+        </div>
+        <div class="form-group">
+            <label>Image Link (optional):</label>
+            <input type="url" name="image_url" placeholder="Default image will be used if not provided">
+        </div>
+        <div class="form-group">
+            <label>Detailed News (write whatever you like):</label>
+            <textarea name="content" rows="8" required placeholder="Write your full news in detail here..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Category:</label>
+            <select name="category">
+                {% for cat in categories %}
+                <option value="{{ cat.slug }}">{{ cat.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">Publish News</button>
+    </form>
+
+    <a href="/" class="back-link">🏠 Return to Website</a>
+</div>
+
+</body>
+</html>

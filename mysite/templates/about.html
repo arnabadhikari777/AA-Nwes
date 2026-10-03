@@ -1,9 +1,258 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="wrap narrow prose">
-<h1 class="page-title">About Us</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - A.A.News</title>
 
-<p class="lede">Welcome to <strong>A.A.News</strong>. In today's fast-paced digital era, our journey began with a singular focus: to deliver the most objective, reliable, and up-to-the-minute news to our readers. We firmly believe that accurate information has the power to transform lives and is fundamental to building an aware and progressive society.</p>
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-M4Q795Q81V');
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #1c2430;
+            --ink-soft: #3a414d;
+            --paper: #f5f1e8;
+            --paper-panel: #fffdf8;
+            --red: #a3123f;
+            --gold: #b5892c;
+            --gray: #5c6068;
+            --line: #ddd6c6;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Lora', Georgia, serif;
+            line-height: 1.8;
+            padding: 0;
+            margin: 0;
+            background-color: var(--paper);
+            color: var(--ink-soft);
+        }
+
+        a { color: inherit; }
+        a:focus-visible, button:focus-visible, .back-btn:focus-visible {
+            outline: 3px solid var(--red);
+            outline-offset: 3px;
+        }
+
+        /* ===== Masthead ===== */
+        .masthead-strip {
+            background: var(--ink);
+            color: #d9cfae;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 9px 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .header-banner {
+            background: var(--paper-panel);
+            text-align: center;
+            padding: 46px 20px 30px;
+            border-bottom: 6px double var(--ink);
+        }
+        .header-banner .eyebrow {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+        .header-banner h1 {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: clamp(44px, 8vw, 68px);
+            color: var(--ink);
+            letter-spacing: 0.5px;
+        }
+        .header-banner p {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 18px;
+            margin-top: 14px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 840px;
+            margin: 0 auto 60px auto;
+            background: var(--paper-panel);
+            padding: 55px 60px;
+            border-radius: 2px;
+            box-shadow: 0 1px 0 var(--line), 0 20px 40px rgba(28,36,48,0.06);
+        }
+
+        .lede {
+            font-size: 18px;
+            color: var(--ink-soft);
+        }
+        .lede::first-letter {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 64px;
+            float: left;
+            line-height: 0.8;
+            padding: 8px 10px 0 0;
+            color: var(--red);
+        }
+
+        .section-eyebrow {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 700;
+            margin: 44px 0 6px;
+        }
+        h2 {
+            color: var(--ink);
+            font-family: 'Playfair Display', serif;
+            margin: 0 0 18px;
+            font-size: 28px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--line);
+            padding-bottom: 12px;
+        }
+        p { font-size: 16px; color: var(--gray); text-align: left; margin-bottom: 20px; }
+        strong { color: var(--ink); }
+
+        /* ===== Pull quote ===== */
+        .highlight-box {
+            position: relative;
+            background: var(--paper);
+            border-left: 4px solid var(--red);
+            padding: 28px 30px 28px 60px;
+            margin: 34px 0;
+        }
+        .highlight-box::before {
+            content: "\201C";
+            position: absolute;
+            left: 14px;
+            top: 2px;
+            font-family: 'Playfair Display', serif;
+            font-size: 56px;
+            color: var(--red);
+            opacity: 0.5;
+            line-height: 1;
+        }
+        .highlight-box p {
+            margin: 0;
+            font-style: italic;
+            font-size: 17px;
+            color: var(--ink-soft);
+        }
+        .highlight-box strong {
+            font-style: normal;
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 8px;
+        }
+
+        /* ===== Coverage grid ===== */
+        .coverage-grid {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .coverage-grid li {
+            margin: 0;
+            padding: 18px 20px;
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            background: var(--paper);
+            font-size: 15px;
+            color: var(--gray);
+        }
+        .coverage-grid strong {
+            display: block;
+            font-family: 'Playfair Display', serif;
+            font-size: 17px;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        /* ===== Back button ===== */
+        .back-btn-container {
+            text-align: center;
+            margin-top: 54px;
+            padding-top: 24px;
+            border-top: 2px solid var(--line);
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 13px 34px;
+            background-color: var(--ink);
+            color: var(--paper);
+            text-decoration: none;
+            border-radius: 2px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: background-color 0.25s ease, transform 0.25s ease;
+        }
+        .back-btn:hover {
+            background-color: var(--red);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 34px 24px; margin: 0 12px 40px; }
+            .header-banner { padding: 34px 16px 24px; }
+            .coverage-grid { grid-template-columns: 1fr; }
+            .highlight-box { padding: 26px 22px 26px 50px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .back-btn { transition: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="masthead-strip">
+        <span>A.A.News · Digital Edition</span>
+        <span>Truth &amp; Accuracy, Every Day</span>
+    </div>
+
+    <div class="header-banner">
+        <div class="eyebrow">Who We Are</div>
+        <h1>About Us</h1>
+        <p>Your Trusted Source for Truth and Accuracy</p>
+    </div>
+
+    <div class="container">
+        <p class="lede">Welcome to <strong>A.A.News</strong>. In today's fast-paced digital era, our journey began with a singular focus: to deliver the most objective, reliable, and up-to-the-minute news to our readers. We firmly believe that accurate information has the power to transform lives and is fundamental to building an aware and progressive society.</p>
 
         <div class="section-eyebrow">Our Purpose</div>
         <h2>Mission &amp; Vision</h2>
@@ -34,5 +283,12 @@
         <h2>Connect With Us</h2>
         <p>We place the highest value on our readers' feedback. To help us continuously improve, we welcome your suggestions, critiques, and comments. Your valuable insights help us correct our course and deliver even better journalism.</p>
         <p>You can reach out to our team directly through our <strong>Contact Us</strong> page. Furthermore, we will soon be expanding our presence across major social media channels to engage with you more closely.</p>
-</div>
-{% endblock %}
+
+        <!-- Return to homepage button -->
+        <div class="back-btn-container">
+            <a href="/" class="back-btn">🏠 Return to Homepage</a>
+        </div>
+    </div>
+
+</body>
+</html>
