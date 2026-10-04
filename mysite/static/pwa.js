@@ -14,7 +14,6 @@
 
   function setNotifyLabel(on) {
     if (!notifyBtn) return;
-    notifyBtn.textContent = '🔔';
     notifyBtn.dataset.on = on ? '1' : '0';
     notifyBtn.title = on ? 'Alerts are ON - tap to turn off' : 'Get breaking news alerts';
   }
