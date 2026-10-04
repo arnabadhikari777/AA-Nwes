@@ -14,8 +14,9 @@
 
   function setNotifyLabel(on) {
     if (!notifyBtn) return;
-    notifyBtn.textContent = on ? '🔕 Alerts On' : '🔔 Alerts';
+    notifyBtn.textContent = '🔔';
     notifyBtn.dataset.on = on ? '1' : '0';
+    notifyBtn.title = on ? 'Alerts are ON - tap to turn off' : 'Get breaking news alerts';
   }
 
   if (!('serviceWorker' in navigator)) { if (notifyBtn) notifyBtn.style.display = 'none'; return; }

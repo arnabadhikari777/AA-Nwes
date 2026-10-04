@@ -88,11 +88,11 @@
             flex-shrink: 0;
             background: var(--crimson);
             color: #fff;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
             letter-spacing: 0.8px;
             text-transform: uppercase;
-            padding: 8px 16px;
+            padding: 6px 12px;
         }
         .ticker-wrap {
             overflow: hidden;
@@ -103,10 +103,10 @@
             display: inline-block;
             white-space: nowrap;
             color: #cdd6e8;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            padding: 8px 0;
-            animation: ticker 20s linear infinite;
+            padding: 6px 0;
+            animation: ticker 22s linear infinite;
         }
         @keyframes ticker {
             0% { transform: translate3d(0, 0, 0); }
@@ -117,25 +117,25 @@
         .masthead-strip {
             background: var(--navy);
             color: #cdd6e8;
-            font-size: 12px;
-            letter-spacing: 1.2px;
+            font-size: 11px;
+            letter-spacing: 1.1px;
             text-transform: uppercase;
-            padding: 8px 24px;
+            padding: 6px 20px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
         }
         .masthead-strip span:last-child { color: var(--gold); font-weight: 600; }
 
-        /* ===== 1st Navbar ===== */
+        /* ===== 1st Navbar: logo | search | icon buttons ===== */
         #navbar {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
             align-items: center;
+            column-gap: 16px;
             background: linear-gradient(120deg, var(--navy) 0%, var(--navy-soft) 100%);
-            padding: 0 24px;
-            height: 76px;
+            padding: 10px 20px;
             box-shadow: 0 4px 18px rgba(14,26,48,0.18);
             position: sticky;
             top: 0;
@@ -146,89 +146,104 @@
         .logo-mark {
             font-family: 'Playfair Display', serif;
             font-weight: 900;
-            font-size: 26px;
+            font-size: 24px;
             color: var(--paper);
             letter-spacing: 0.5px;
             white-space: nowrap;
         }
         .logo-mark span { color: var(--gold); }
         .logo-tagline {
-            font-size: 10px;
-            letter-spacing: 2px;
+            font-size: 9px;
+            letter-spacing: 1.6px;
             text-transform: uppercase;
             color: #9fb0cc;
             display: block;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .search-box {
             display: flex;
-            flex: 1;
-            max-width: 560px;
-            height: 44px;
+            width: 100%;
+            max-width: 480px;
+            justify-self: center;
+            height: 40px;
             border-radius: 999px;
             overflow: hidden;
             background-color: var(--paper);
-            margin: 0 24px;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
         }
-
         .search-box input {
             flex: 1;
+            min-width: 0;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 16px;
             outline: none;
             color: var(--ink);
             font-family: 'Inter', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             background: transparent;
         }
-
         .search-box button {
-            width: 54px;
+            width: 44px;
             border: none;
             cursor: pointer;
             background: linear-gradient(120deg, var(--crimson) 0%, var(--gold) 130%);
-            font-size: 18px;
+            font-size: 16px;
             color: white;
             transition: filter 0.2s ease, transform 0.2s ease;
         }
         .search-box button:hover { filter: brightness(1.08); transform: scale(1.03); }
 
-        .navbar-right { display: flex; align-items: center; gap: 16px; }
-
-        .account-icon { display: flex; align-items: center; }
-        .account-icon svg { transition: transform 0.2s ease; }
-        .account-icon:hover svg { transform: scale(1.1); }
-
-        #mode {
-            background: linear-gradient(120deg, var(--gold), #ff8a3d);
-            color: var(--navy);
-            border: none;
-            border-radius: 999px;
-            height: 38px;
-            padding: 0 18px;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
+        /* Compact round icon buttons: alerts, theme, install, account */
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.14);
+            color: #fff;
+            font-size: 16px;
+            line-height: 1;
+            text-decoration: none;
             cursor: pointer;
-            transition: transform 0.2s ease, filter 0.2s ease;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            flex-shrink: 0;
         }
-        #mode:hover { transform: translateY(-1px); filter: brightness(1.06); }
-
-        @media (max-width: 760px) {
-            #navbar { flex-wrap: wrap; height: auto; padding: 12px; row-gap: 10px; }
-            .search-box { order: 3; flex: 1 1 100%; height: 40px; margin: 0; }
-            .logo-tagline { display: none; }
-            #mode { font-size: 12px; padding: 0 14px; height: 34px; }
+        .icon-btn:hover {
+            background: rgba(255,255,255,0.18);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
+        .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
+        #notify-btn[data-on="1"] {
+            background: linear-gradient(120deg, var(--gold), #ff8a3d);
+            border-color: transparent;
+            color: var(--navy);
+        }
+        /* Install stays a pure icon button – no text */
+        #install-btn {
+            background: linear-gradient(120deg, var(--gold), #ff8a3d);
+            border-color: transparent;
+            color: var(--navy);
+            font-size: 15px;
+        }
+        #install-btn span { display: none; }
 
         /* ===== 2nd Navbar (Categories) ===== */
         #second-navbar {
             background: var(--navy-soft);
             display: flex;
-            padding: 12px 22px;
-            gap: 10px;
+            padding: 10px 18px;
+            gap: 8px;
             overflow-x: auto;
             white-space: nowrap;
             border-bottom: 3px solid var(--gold);
@@ -238,9 +253,9 @@
         .category-link {
             text-decoration: none;
             color: #d7deec;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            padding: 8px 16px;
+            padding: 7px 14px;
             border-radius: 999px;
             transition: 0.25s ease;
             cursor: pointer;
@@ -494,6 +509,54 @@
             color: #b9c3da;
         }
 
+        /* ===== Phone layout ===== */
+        @media (max-width: 760px) {
+            .breaking-tag { padding: 5px 10px; font-size: 10px; }
+            .ticker-move { font-size: 11px; padding: 5px 0; }
+
+            /* Slim masthead stays visible on mobile */
+            .masthead-strip {
+                font-size: 10px;
+                letter-spacing: 0.8px;
+                padding: 5px 12px;
+            }
+
+            /* Row 1: logo + compact icons. Row 2: full-width search. */
+            #navbar {
+                grid-template-columns: minmax(0, 1fr) auto;
+                row-gap: 8px;
+                padding: 8px 12px;
+                position: static;
+            }
+            .logo-tagline { display: none; }
+            .logo-mark { font-size: 22px; }
+            .navbar-right { gap: 5px; }
+            .icon-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 15px;
+            }
+            .icon-btn svg { width: 16px; height: 16px; }
+            .search-box {
+                grid-column: 1 / -1;
+                grid-row: 2;
+                max-width: none;
+                height: 36px;
+            }
+            .search-box input {
+                padding: 6px 14px;
+                font-size: 13px;
+            }
+            .search-box button {
+                width: 40px;
+                font-size: 15px;
+            }
+
+            /* Categories stay pinned to the top while scrolling */
+            #second-navbar { position: sticky; top: 0; z-index: 50; padding: 8px 12px; gap: 8px; }
+            .category-link { font-size: 12px; padding: 6px 12px; }
+        }
+
         /* ===== Accessibility ===== */
         @media (prefers-reduced-motion: reduce) {
             .news-card, #mode, .search-box button, .footer-section ul li a { transition: none; }
@@ -502,9 +565,9 @@
 </head>
 <body>
 
-    <!-- Breaking News Ticker (added) -->
+    <!-- Breaking News Ticker -->
     <div class="breaking-bar">
-        <div class="breaking-tag">About Us</div>
+        <span class="breaking-tag">BREAKING</span>
         <div class="ticker-wrap">
             <div class="ticker-move">
                 📰 A.A.News brings you fresh, verified news around the clock. &nbsp;&nbsp;•&nbsp;&nbsp;
@@ -519,7 +582,7 @@
         <span>Truth &amp; Accuracy, Every Day</span>
     </div>
 
-    <!-- 1st Navbar -->
+    <!-- 1st Navbar: logo | search | compact icons -->
     <div id="navbar">
         <a id="logo" href="/">
             <div>
@@ -532,14 +595,14 @@
             <button id="search-btn" aria-label="Search">&#128269;</button>
         </div>
         <div class="navbar-right">
-            <a href="#" class="account-icon" aria-label="Account">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="30px" height="30px">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            <button class="icon-btn" id="install-btn" style="display:none" title="Install app" aria-label="Install app">📲</button>
+            <button class="icon-btn" id="notify-btn" title="Breaking news alerts" aria-label="Breaking news alerts">🔔</button>
+            <button class="icon-btn" id="mode" title="Dark / light mode" aria-label="Toggle dark mode">🌙</button>
+            <a href="/login" class="icon-btn" aria-label="Admin login" title="Admin login">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                 </svg>
             </a>
-            <button class="modebtn" id="install-btn" style="display:none">📲 Install</button>
-            <button class="modebtn" id="notify-btn">🔔 Alerts</button>
-            <button class="modebtn" id="mode">🌙 Dark Mode</button>
         </div>
     </div>
 
@@ -621,7 +684,7 @@
             if (currMode === "dark") {
                 body.classList.add("dark-theme");
                 body.style.backgroundColor = "#0b1220";
-                modeBtn.innerText = "☀️ Light Mode";
+                modeBtn.innerText = "☀️";
                 if (heading) heading.style.color = "#f2a71b";
 
                 ncards.forEach(card => {
@@ -633,7 +696,7 @@
             } else {
                 body.classList.remove("dark-theme");
                 body.style.backgroundColor = "#f6f2e9";
-                modeBtn.innerText = "🌙 Dark Mode";
+                modeBtn.innerText = "🌙";
                 if (heading) heading.style.color = "#0e1a30";
 
                 ncards.forEach(card => {
