@@ -5,6 +5,7 @@ import os
 import hmac
 import time
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
@@ -848,6 +849,129 @@ def about():
 @app.route('/privacy-policy')
 def privacy_policy():
     return render_template('privacy.html')
+
+
+# ---------------------------------------------------------------
+# Live presence: how many people are on the site right now
+# ---------------------------------------------------------------
+# Every open page sends a small "I'm here" ping every ~12 seconds (static/presence.js).
+# A person who closes the page sends a "leave" message, and anyone who goes quiet for
+# PRESENCE_TTL seconds is counted as gone. Visitors and dashboard viewers are kept apart,
+# so the admin looking at the dashboard never shows up in the visitor count.
+# Stored in its own small file (presence.db) so it never touches news.db.
+PRESENCE_DB = os.path.join(BASE_DIR, 'presence.db')
+PRESENCE_TTL = 45
+_presence_ready = False
+_ID_RE = re.compile(r'^[A-Za-z0-9_-]{8,64}$')
+
+
+def presence_conn():
+    global _presence_ready
+    conn = sqlite3.connect(PRESENCE_DB, timeout=5)
+    if not _presence_ready:
+        conn.execute(
+            'CREATE TABLE IF NOT EXISTS presence ('
+            'tab TEXT PRIMARY KEY, browser TEXT NOT NULL, role TEXT NOT NULL, '
+            'page TEXT, device TEXT, first_seen REAL NOT NULL, last_seen REAL NOT NULL)'
+        )
+        conn.commit()
+        _presence_ready = True
+    return conn
+
+
+def page_label(path):
+    path = path or '/'
+    if path == '/':
+        return 'Home'
+    if path.startswith('/read/'):
+        return 'Reading an article'
+    if path.startswith('/about'):
+        return 'About page'
+    if path.startswith('/privacy'):
+        return 'Privacy page'
+    if path.startswith('/admin'):
+        return 'Dashboard'
+    return path[:40]
+
+
+@app.route('/presence/ping', methods=['POST'])
+def presence_ping():
+    data = request.get_json(silent=True, force=True) or {}
+    tab, browser = str(data.get('tab', '')), str(data.get('browser', ''))
+    if not (_ID_RE.match(tab) and _ID_RE.match(browser)):
+        return '', 400
+    role = 'admin' if data.get('role') == 'admin' else 'visitor'
+    if role == 'admin' and not session.get('is_admin'):
+        return '', 403            # only a logged-in admin can be counted as a dashboard viewer
+    page = str(data.get('page', '/'))[:80]
+    if not page.startswith('/'):
+        page = '/'
+    ua = request.headers.get('User-Agent', '').lower()
+    device = 'Mobile' if any(k in ua for k in ('mobi', 'android', 'iphone', 'ipad')) else 'Desktop'
+    now = time.time()
+    conn = presence_conn()
+    try:
+        conn.execute(
+            'INSERT INTO presence (tab, browser, role, page, device, first_seen, last_seen) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?) '
+            'ON CONFLICT(tab) DO UPDATE SET browser = excluded.browser, page = excluded.page, '
+            'device = excluded.device, '
+            'first_seen = CASE WHEN presence.role = excluded.role AND excluded.last_seen - presence.last_seen < ? '
+            'THEN presence.first_seen ELSE excluded.first_seen END, '
+            'role = excluded.role, last_seen = excluded.last_seen',
+            (tab, browser, role, page, device, now, now, PRESENCE_TTL)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return '', 204
+
+
+@app.route('/presence/leave', methods=['POST'])
+def presence_leave():
+    data = request.get_json(silent=True, force=True) or {}
+    tab = str(data.get('tab', ''))
+    if _ID_RE.match(tab):
+        conn = presence_conn()
+        try:
+            conn.execute('DELETE FROM presence WHERE tab = ?', (tab,))
+            conn.commit()
+        finally:
+            conn.close()
+    return '', 204
+
+
+@app.route('/admin/presence')
+def admin_presence():
+    if not session.get('is_admin'):
+        return jsonify({'error': 'login required'}), 401
+    now = time.time()
+    conn = presence_conn()
+    try:
+        conn.execute('DELETE FROM presence WHERE last_seen < ?', (now - 300,))   # tidy up old rows
+        conn.commit()
+        rows = conn.execute(
+            'SELECT role, browser, page, device, first_seen FROM presence '
+            'WHERE last_seen >= ? ORDER BY first_seen', (now - PRESENCE_TTL,)
+        ).fetchall()
+    finally:
+        conn.close()
+
+    visitors, admins = [], []
+    seen = {'visitor': set(), 'admin': set()}
+    for role, browser, page, device, first_seen in rows:
+        if browser in seen[role]:
+            continue              # same person with several tabs open counts once
+        seen[role].add(browser)
+        item = {'device': device, 'page': page_label(page), 'seconds': int(now - first_seen)}
+        (admins if role == 'admin' else visitors).append(item)
+
+    resp = jsonify({
+        'visitors': len(visitors), 'admins': len(admins),
+        'visitor_list': visitors[:40], 'admin_list': admins[:10],
+    })
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 if __name__ == '__main__':
     # This block only runs when you start the app locally with `python app.py`.

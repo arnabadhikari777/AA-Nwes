@@ -2,169 +2,195 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#050d26">
     <title>Admin Dashboard - A.A.News</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/static/presence.js" data-role="admin" defer></script>
     <style>
         :root {
-            --navy: #0e1a30;
-            --navy-soft: #16223c;
-            --crimson: #e6314b;
-            --crimson-deep: #b81d36;
-            --gold: #f2a71b;
-            --cream: #f6f2e9;
-            --line: #e6ddc9;
+            --bg1:#040a1c; --bg2:#0a1a4a; --text:#e8efff; --soft:#8fa6da;
+            --blue:#3b82f6; --blue2:#2563eb; --sky:#38bdf8; --cyan:#22d3ee; --indigo:#6366f1; --violet:#8b5cf6;
+            --card:rgba(14,30,78,.58); --line:rgba(96,165,250,.22);
+            --grad:linear-gradient(120deg,#2563eb,#38bdf8 55%,#22d3ee);
+            --grad2:linear-gradient(120deg,#4f46e5,#3b82f6 60%,#38bdf8);
+            --shadow:0 18px 50px rgba(2,8,30,.55);
         }
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Inter', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--cream) 0%, #eee7d6 100%);
-            margin: 0;
-            padding: 30px 20px 60px;
-            color: var(--navy);
-        }
-        .wrap { max-width: 1100px; margin: 0 auto; }
+        * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { margin:0; min-height:100vh; padding:26px 18px calc(60px + env(safe-area-inset-bottom,0px)); font-family:'Inter',Arial,sans-serif; color:var(--text); background:linear-gradient(160deg,var(--bg1),var(--bg2) 70%,#0c2260); background-attachment:fixed; overflow-x:hidden; }
+        .aurora { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+        .aurora i { position:absolute; width:55vmax; height:55vmax; border-radius:50%; filter:blur(95px); opacity:.42; animation:drift 24s ease-in-out infinite alternate; }
+        .aurora i:nth-child(1){ background:radial-gradient(circle,#2563eb,transparent 65%); top:-20vmax; left:-16vmax; }
+        .aurora i:nth-child(2){ background:radial-gradient(circle,#22d3ee,transparent 65%); top:35vh; right:-24vmax; opacity:.25; animation-duration:30s; }
+        .aurora i:nth-child(3){ background:radial-gradient(circle,#6366f1,transparent 65%); bottom:-26vmax; left:18vw; animation-duration:36s; }
+        @keyframes drift { to { transform:translate3d(8vmax,6vmax,0) scale(1.15) rotate(25deg); } }
+        @keyframes flow { to { background-position:200% 0; } }
+        @keyframes rise { from { opacity:0; transform:translateY(26px) scale(.97); } }
+        @keyframes pulse { 70% { box-shadow:0 0 0 12px rgba(34,211,238,0); } 100% { box-shadow:0 0 0 0 rgba(34,211,238,0); } }
+        @keyframes shimmer { to { background-position:-200% 0; } }
 
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 26px;
-        }
-        .topbar h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 26px;
-            margin: 0;
-        }
-        .topbar h1 span { color: var(--crimson); }
-        .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn {
-            text-decoration: none;
-            padding: 10px 18px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 13.5px;
-            cursor: pointer;
-            border: none;
-            transition: transform 0.2s ease, filter 0.2s ease;
-            display: inline-block;
-        }
-        .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
-        .btn-gold { background: linear-gradient(120deg, var(--gold), #ff8a3d); color: var(--navy); }
-        .btn-navy { background: linear-gradient(120deg, var(--navy), var(--navy-soft)); color: #fff; }
-        .btn-crimson { background: linear-gradient(120deg, var(--crimson), var(--crimson-deep)); color: #fff; }
-        .btn-small { padding: 7px 14px; font-size: 12.5px; }
+        .wrap { max-width:1120px; margin:0 auto; }
 
-        .card {
-            background: #fffdf9;
-            border-radius: 14px;
-            box-shadow: 0 16px 40px rgba(14,26,48,0.12);
-            border-top: 4px solid var(--gold);
-            padding: 24px;
-            margin-bottom: 26px;
-        }
-        .card h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 19px;
-            margin: 0 0 16px;
-        }
+        /* Topbar */
+        .topbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:24px; animation:rise .7s cubic-bezier(.2,.9,.2,1) both; }
+        .brand { display:flex; align-items:center; gap:13px; }
+        .emblem { width:48px; height:48px; border-radius:15px; display:grid; place-items:center; background:var(--grad); background-size:200% 200%; box-shadow:0 8px 24px rgba(56,189,248,.5); animation:flow 6s linear infinite; }
+        .emblem svg { width:26px; height:26px; fill:none; stroke:#04122e; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
+        .brand h1 { margin:0; font:800 22px 'Sora',sans-serif; letter-spacing:-.4px; }
+        .brand h1 span { background:var(--grad); background-size:200% auto; -webkit-background-clip:text; background-clip:text; color:transparent; animation:flow 5s linear infinite; }
+        .brand small { display:block; margin-top:4px; font-size:11px; letter-spacing:1.6px; text-transform:uppercase; color:var(--soft); font-weight:600; }
+        .actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .btn { display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:10px 18px; border-radius:999px; border:none; cursor:pointer; font:700 13.5px 'Inter',sans-serif; color:#fff; background-size:200% 200%; transition:transform .25s cubic-bezier(.3,1.6,.5,1),box-shadow .25s,filter .25s; }
+        .btn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+        .btn:hover { transform:translateY(-3px); filter:brightness(1.1); box-shadow:0 10px 24px rgba(56,189,248,.35); }
+        .btn:active { transform:scale(.95); }
+        .btn-blue { background-image:var(--grad); color:#04122e; }
+        .btn-indigo { background-image:var(--grad2); }
+        .btn-red { background-image:linear-gradient(120deg,#e11d48,#f43f5e 60%,#fb7185); }
+        .btn-ghost { background:rgba(255,255,255,.08); border:1px solid var(--line); }
+        .btn-small { padding:7px 14px; font-size:12.5px; }
 
-        /* Category chips */
-        .cat-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
-        .cat-chip {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--cream);
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 6px 8px 6px 14px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .cat-chip form { margin: 0; }
-        .cat-chip .del-cat-btn {
-            border: none;
-            background: var(--crimson);
-            color: #fff;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            font-size: 12px;
-            line-height: 1;
-            cursor: pointer;
-        }
-        .cat-chip.locked { opacity: 0.7; }
+        /* Cards */
+        .card { position:relative; overflow:hidden; background:var(--card); border:1px solid var(--line); border-radius:24px; padding:24px; margin-bottom:22px; box-shadow:var(--shadow); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); animation:rise .7s cubic-bezier(.2,.9,.2,1) both; animation-delay:var(--d,0ms); }
+        .card::before { content:""; position:absolute; left:0; right:0; top:0; height:3px; background:var(--grad); background-size:200% 100%; animation:flow 4s linear infinite; }
+        .card h2 { display:flex; align-items:center; gap:10px; margin:0 0 18px; font:700 18px 'Sora',sans-serif; letter-spacing:-.2px; }
+        .card h2 svg { width:20px; height:20px; fill:none; stroke:var(--sky); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
 
-        .add-cat-form {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .add-cat-form input[type="text"] {
-            flex: 1;
-            min-width: 180px;
-            padding: 10px 14px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 14px;
-        }
-        .add-cat-form input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(242,167,27,0.22); }
+        /* Live section */
+        .live-grid { display:grid; grid-template-columns:1.5fr 1fr; gap:22px; margin-bottom:22px; }
+        .live-grid .card { margin:0; }
+        .live-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
+        .live-title { font-size:13px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--soft); }
+        .badge-live { display:inline-flex; align-items:center; gap:8px; padding:5px 12px; border-radius:999px; font-size:11px; font-weight:800; letter-spacing:1px; color:#04122e; background:var(--grad); }
+        .badge-live i { width:8px; height:8px; border-radius:50%; background:#04122e; box-shadow:0 0 0 0 rgba(4,18,46,.6); animation:pulse 1.6s infinite; }
+        .badge-live.off { background:rgba(255,255,255,.14); color:var(--soft); }
+        .badge-live.off i { animation:none; background:var(--soft); }
+        .big { display:flex; align-items:baseline; gap:14px; margin:6px 0 2px; }
+        .big b { font:800 clamp(56px,11vw,92px)/1 'Sora',sans-serif; letter-spacing:-3px; background:linear-gradient(120deg,#fff,var(--sky) 55%,var(--cyan)); background-size:200% auto; -webkit-background-clip:text; background-clip:text; color:transparent; animation:flow 6s linear infinite; display:inline-block; }
+        .big b.pop { animation:pop .5s cubic-bezier(.3,1.6,.5,1), flow 6s linear infinite; }
+        @keyframes pop { 40% { transform:scale(1.2); } }
+        .big span { font-size:14px; color:var(--soft); font-weight:600; line-height:1.4; }
+        .spark { width:100%; height:84px; display:block; margin-top:10px; }
+        .meta { display:flex; justify-content:space-between; gap:10px; margin-top:6px; font-size:12px; color:var(--soft); font-weight:600; }
+        .people { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; min-height:34px; }
+        .person { display:inline-flex; align-items:center; gap:8px; padding:7px 13px; border-radius:999px; font-size:12.5px; font-weight:600; background:rgba(56,189,248,.12); border:1px solid var(--line); animation:rise .5s cubic-bezier(.3,1.5,.5,1) both; }
+        .person svg { width:15px; height:15px; fill:none; stroke:var(--sky); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+        .person em { font-style:normal; color:var(--soft); font-weight:500; }
+        .none { color:var(--soft); font-size:13px; padding:6px 2px; }
+        .admin-card .big b { background:linear-gradient(120deg,#fff,#a5b4fc 55%,var(--violet)); background-size:200% auto; -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .admin-card .badge-live { background:var(--grad2); color:#fff; }
+        .admin-card .badge-live i { background:#fff; }
+        .conn { font-size:11.5px; color:#fda4af; font-weight:600; display:none; }
+        .conn.show { display:block; margin-top:8px; }
+
+        .tiles { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:22px; }
+        .tile { display:flex; align-items:center; gap:16px; padding:20px 22px; border-radius:22px; background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); animation:rise .7s cubic-bezier(.2,.9,.2,1) both; animation-delay:var(--d,0ms); }
+        .tile .ic { width:50px; height:50px; border-radius:16px; display:grid; place-items:center; background:var(--grad2); box-shadow:0 8px 20px rgba(79,70,229,.45); }
+        .tile .ic svg { width:24px; height:24px; fill:none; stroke:#fff; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+        .tile b { display:block; font:800 28px 'Sora',sans-serif; }
+        .tile span { font-size:12px; color:var(--soft); font-weight:600; letter-spacing:.8px; text-transform:uppercase; }
+
+        /* Categories */
+        .cat-list { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+        .cat-chip { display:flex; align-items:center; gap:8px; padding:7px 8px 7px 15px; border-radius:999px; font-size:13px; font-weight:600; background:rgba(56,189,248,.10); border:1px solid var(--line); transition:transform .25s cubic-bezier(.3,1.6,.5,1),border-color .25s; }
+        .cat-chip:hover { transform:translateY(-2px); border-color:var(--sky); }
+        .cat-chip form { margin:0; }
+        .cat-chip .del-cat-btn { width:22px; height:22px; border:none; border-radius:50%; cursor:pointer; color:#fff; font-size:13px; line-height:1; background:linear-gradient(120deg,#e11d48,#fb7185); transition:transform .25s cubic-bezier(.3,1.6,.5,1); }
+        .cat-chip .del-cat-btn:hover { transform:rotate(90deg) scale(1.15); }
+        .cat-chip.locked { opacity:.7; padding-right:15px; }
+        .add-cat-form { display:flex; gap:10px; flex-wrap:wrap; }
+        input[type="text"],.search { flex:1; min-width:180px; padding:12px 16px; border-radius:14px; border:1px solid var(--line); background:rgba(4,10,28,.55); color:var(--text); font:500 14px 'Inter',sans-serif; transition:box-shadow .25s,border-color .25s; }
+        input::placeholder { color:var(--soft); }
+        input:focus { outline:none; border-color:var(--sky); box-shadow:0 0 0 4px rgba(56,189,248,.22); }
 
         /* News table */
-        table { width: 100%; border-collapse: collapse; }
-        th, td {
-            text-align: left;
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--line);
-            font-size: 14px;
-            vertical-align: middle;
-        }
-        th { color: #7c8598; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-        td.title-cell { font-weight: 600; max-width: 340px; }
-        .badge {
-            display: inline-block;
-            background: var(--navy-soft);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 999px;
-            text-transform: uppercase;
-        }
-        .row-actions { display: flex; gap: 8px; }
-        .row-actions form { margin: 0; }
-        .empty-state { text-align: center; padding: 40px 10px; color: #7c8598; }
+        .news-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+        .news-head h2 { margin:0; }
+        .search { flex:0 1 280px; }
+        table { width:100%; border-collapse:collapse; margin-top:12px; }
+        th,td { text-align:left; padding:13px 10px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle; }
+        th { color:var(--soft); font-size:11.5px; text-transform:uppercase; letter-spacing:.9px; }
+        tbody tr { transition:background .25s; }
+        tbody tr:hover { background:rgba(56,189,248,.08); }
+        td.title-cell { font-weight:600; max-width:380px; overflow-wrap:anywhere; }
+        .badge { display:inline-block; padding:4px 11px; border-radius:999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background:var(--grad2); color:#fff; }
+        .row-actions { display:flex; gap:8px; }
+        .row-actions form { margin:0; }
+        .empty-state { text-align:center; padding:40px 10px; color:var(--soft); }
 
-        @media (max-width: 700px) {
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; }
-            tr { border-bottom: 2px solid var(--line); padding: 12px 0; }
-            td { border: none; padding: 4px 0; }
-            td::before { content: attr(data-label); display: block; font-size: 11px; color: #7c8598; text-transform: uppercase; }
+        @media (max-width:860px) { .live-grid { grid-template-columns:1fr; } }
+        @media (max-width:700px) {
+            body { padding:18px 12px 60px; }
+            .card { padding:20px 18px; border-radius:22px; }
+            .tiles { gap:14px; } .tile { padding:16px; gap:12px; } .tile .ic { width:42px; height:42px; border-radius:13px; } .tile b { font-size:23px; }
+            table,thead,tbody,th,td,tr { display:block; }
+            thead { display:none; }
+            tr { border-bottom:1px solid var(--line); padding:12px 0; }
+            td { border:none; padding:4px 0; }
+            td::before { content:attr(data-label); display:block; font-size:10.5px; color:var(--soft); text-transform:uppercase; letter-spacing:.8px; }
+            .search { flex:1 1 100%; }
         }
+        @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
     </style>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="wrap">
 
     <div class="topbar">
-        <h1>A.A.<span>News</span> — Admin Dashboard</h1>
-        <div class="topbar-actions">
-            <a href="/add_news" class="btn btn-gold">+ Write News</a>
-            <a href="/" class="btn btn-navy">🏠 View Website</a>
-            <a href="/logout" class="btn btn-crimson">Logout</a>
+        <div class="brand">
+            <span class="emblem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 12 5l7 14M8.5 14h7"/></svg></span>
+            <div><h1>A.A.<span>News</span> Admin</h1><small>Control Center</small></div>
+        </div>
+        <div class="actions">
+            <a href="/add_news" class="btn btn-blue"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Write News</a>
+            <a href="/" class="btn btn-indigo"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9Z"/></svg>View Website</a>
+            <a href="/logout" class="btn btn-red"><svg viewBox="0 0 24 24"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"/></svg>Logout</a>
         </div>
     </div>
 
+    <!-- Live presence -->
+    <div class="live-grid">
+        <div class="card" style="--d:80ms">
+            <div class="live-head">
+                <span class="live-title">Live visitors on the portal</span>
+                <span class="badge-live off" id="v-badge"><i></i><span>CONNECTING</span></span>
+            </div>
+            <div class="big"><b id="v-count">0</b><span>people reading<br>the news right now</span></div>
+            <svg class="spark" id="spark" viewBox="0 0 300 84" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                    <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38bdf8" stop-opacity=".55"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></linearGradient>
+                    <linearGradient id="sl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6366f1"/><stop offset=".5" stop-color="#38bdf8"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+                </defs>
+                <path id="sp-area" fill="url(#sf)" d=""/>
+                <path id="sp-line" fill="none" stroke="url(#sl)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" d=""/>
+            </svg>
+            <div class="meta"><span>Last 3 minutes</span><span id="v-peak">Peak this visit: 0</span></div>
+            <div class="people" id="v-list"><div class="none">Nobody is on the portal right now.</div></div>
+            <div class="conn" id="conn">Connection lost — retrying…</div>
+        </div>
+
+        <div class="card admin-card" style="--d:160ms">
+            <div class="live-head">
+                <span class="live-title">Dashboard viewers</span>
+                <span class="badge-live" id="a-badge"><i></i><span>ADMIN</span></span>
+            </div>
+            <div class="big"><b id="a-count">0</b><span>people viewing<br>this dashboard</span></div>
+            <div class="people" id="a-list"></div>
+            <div class="none" style="margin-top:12px">Your own visit is counted here, not in the visitors box.</div>
+        </div>
+    </div>
+
+    <div class="tiles">
+        <div class="tile" style="--d:220ms"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h13a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5Z"/><path d="M8 9h7M8 13h7"/></svg></span><div><b>{{ news_items|length }}</b><span>Articles</span></div></div>
+        <div class="tile" style="--d:280ms"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></span><div><b>{{ categories|length }}</b><span>Categories</span></div></div>
+    </div>
+
     <!-- Category Management -->
-    <div class="card">
-        <h2>🗂️ Categories</h2>
+    <div class="card" style="--d:300ms">
+        <h2><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>Categories</h2>
         <div class="cat-list">
             {% for cat in categories %}
                 <div class="cat-chip {% if cat.slug == 'all' %}locked{% endif %}">
@@ -181,25 +207,23 @@
 
         <form class="add-cat-form" method="POST" action="/admin/add_category">
             <input type="text" name="label" placeholder="New category name (e.g. Education, Gaming)" required>
-            <button type="submit" class="btn btn-navy">+ Add Category</button>
+            <button type="submit" class="btn btn-blue">+ Add Category</button>
         </form>
     </div>
 
     <!-- News List -->
-    <div class="card">
-        <h2>📰 All News ({{ news_items|length }})</h2>
+    <div class="card" style="--d:360ms">
+        <div class="news-head">
+            <h2><svg viewBox="0 0 24 24"><path d="M4 5h13a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5Z"/><path d="M8 9h7M8 13h7"/></svg>All News ({{ news_items|length }})</h2>
+            <input type="text" class="search" id="news-filter" placeholder="Search news…" autocomplete="off">
+        </div>
 
         {% if news_items %}
         <table>
             <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Source</th>
-                    <th>Category</th>
-                    <th>Actions</th>
-                </tr>
+                <tr><th>Title</th><th>Source</th><th>Category</th><th>Actions</th></tr>
             </thead>
-            <tbody>
+            <tbody id="news-rows">
                 {% for news in news_items %}
                 <tr>
                     <td class="title-cell" data-label="Title">{{ news.title }}</td>
@@ -207,10 +231,10 @@
                     <td data-label="Category"><span class="badge">{{ news.category }}</span></td>
                     <td data-label="Actions">
                         <div class="row-actions">
-                            <a href="/admin/edit/{{ news.id }}" class="btn btn-gold btn-small">Edit</a>
+                            <a href="/admin/edit/{{ news.id }}" class="btn btn-blue btn-small">Edit</a>
                             <form method="POST" action="/admin/delete/{{ news.id }}"
                                   onsubmit="return confirm('Delete this news item permanently?');">
-                                <button type="submit" class="btn btn-crimson btn-small">Delete</button>
+                                <button type="submit" class="btn btn-red btn-small">Delete</button>
                             </form>
                         </div>
                     </td>
@@ -224,5 +248,93 @@
     </div>
 
 </div>
+
+<script>
+(function () {
+    const $ = id => document.getElementById(id);
+    const PHONE = '<svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>';
+    const DESK  = '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>';
+    const history = [];            // visitor count samples (every 3s => 60 = 3 minutes)
+    let peak = 0, shown = { v: 0, a: 0 }, firstLoad = true;
+
+    // Count with a quick roll + pop when the number changes
+    function setCount(el, key, n) {
+        if (shown[key] === n && !firstLoad) return;
+        const from = shown[key]; shown[key] = n;
+        const start = performance.now();
+        el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+        (function step(t) {
+            const p = Math.min(1, (t - start) / 450);
+            el.textContent = Math.round(from + (n - from) * p);
+            if (p < 1) requestAnimationFrame(step);
+        })(start);
+    }
+
+    function ago(s) {
+        if (s < 60) return s + 's';
+        if (s < 3600) return Math.floor(s / 60) + 'm';
+        return Math.floor(s / 3600) + 'h ' + Math.floor((s % 3600) / 60) + 'm';
+    }
+
+    function renderPeople(box, list, emptyText) {
+        box.innerHTML = '';
+        if (!list.length) { if (emptyText) { const d = document.createElement('div'); d.className = 'none'; d.textContent = emptyText; box.appendChild(d); } return; }
+        list.forEach(p => {
+            const el = document.createElement('span');
+            el.className = 'person';
+            el.innerHTML = p.device === 'Mobile' ? PHONE : DESK;
+            el.append(document.createTextNode(p.page + ' '));
+            const em = document.createElement('em'); em.textContent = '· ' + ago(p.seconds);
+            el.appendChild(em);
+            box.appendChild(el);
+        });
+    }
+
+    function drawSpark() {
+        const W = 300, H = 84, top = Math.max(3, peak);
+        const pts = history.map((v, i) => [history.length === 1 ? W : (i / (history.length - 1)) * W, H - 6 - (v / top) * (H - 14)]);
+        if (pts.length < 2) { $('sp-line').setAttribute('d', ''); $('sp-area').setAttribute('d', ''); return; }
+        const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+        $('sp-line').setAttribute('d', line);
+        $('sp-area').setAttribute('d', line + ` L${W} ${H} L0 ${H} Z`);
+    }
+
+    function setBadge(on, text) {
+        const b = $('v-badge');
+        b.classList.toggle('off', !on);
+        b.lastElementChild.textContent = text;
+    }
+
+    function poll() {
+        if (document.hidden) return;
+        fetch('/admin/presence', { cache: 'no-store', credentials: 'same-origin' })
+            .then(r => { if (r.status === 401) { location.href = '/login'; throw 0; } return r.json(); })
+            .then(d => {
+                $('conn').classList.remove('show');
+                peak = Math.max(peak, d.visitors);
+                history.push(d.visitors); if (history.length > 60) history.shift();
+                setCount($('v-count'), 'v', d.visitors);
+                setCount($('a-count'), 'a', d.admins);
+                setBadge(d.visitors > 0, d.visitors > 0 ? 'LIVE' : 'QUIET');
+                $('v-peak').textContent = 'Peak this visit: ' + peak;
+                renderPeople($('v-list'), d.visitor_list, 'Nobody is on the portal right now.');
+                renderPeople($('a-list'), d.admin_list, '');
+                drawSpark();
+                firstLoad = false;
+            })
+            .catch(e => { if (e !== 0) { $('conn').classList.add('show'); setBadge(false, 'OFFLINE'); } });
+    }
+    poll();
+    setInterval(poll, 3000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+
+    // Quick filter for the news table
+    const f = $('news-filter');
+    if (f) f.addEventListener('input', () => {
+        const q = f.value.trim().toLowerCase();
+        document.querySelectorAll('#news-rows tr').forEach(tr => { tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+})();
+</script>
 </body>
 </html>
