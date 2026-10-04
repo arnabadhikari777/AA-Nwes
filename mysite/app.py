@@ -704,9 +704,24 @@ def admin_dashboard():
     if not session.get('is_admin'):
         return redirect(url_for('login'))
 
+    # Only one page of news is sent to the browser (thousands of rows made the page slow)
+    per_page = 20
+    q = request.args.get('q', '').strip()[:100]
+    where, params = '', []
+    if q:
+        where = 'WHERE title LIKE ? OR source LIKE ?'
+        params = ['%' + q + '%', '%' + q + '%']
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('SELECT id, title, source, category FROM news ORDER BY id DESC')
+    total_all = cursor.execute('SELECT COUNT(*) FROM news').fetchone()[0]
+    total_news = cursor.execute('SELECT COUNT(*) FROM news ' + where, params).fetchone()[0]
+    pages = max(1, -(-total_news // per_page))
+    page = min(max(request.args.get('page', 1, type=int), 1), pages)
+    cursor.execute(
+        'SELECT id, title, source, category FROM news ' + where + ' ORDER BY id DESC LIMIT ? OFFSET ?',
+        params + [per_page, (page - 1) * per_page]
+    )
     news_rows = cursor.fetchall()
     conn.close()
 
@@ -718,7 +733,11 @@ def admin_dashboard():
     return render_template(
         'admin_dashboard.html',
         news_items=news_items,
-        categories=get_all_categories()
+        categories=get_all_categories(),
+        total_all=total_all, total_news=total_news,
+        page=page, pages=pages, q=q,
+        start=(page - 1) * per_page + (1 if news_items else 0),
+        end=(page - 1) * per_page + len(news_items)
     )
 
 # 8c. Edit an existing news item
