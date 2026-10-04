@@ -6,6 +6,18 @@
     <meta name="description" content="A.A.News — Latest news on politics, technology, sports, business and entertainment, updated around the clock.">
     <title>A.A.News — Your Trusted News Source</title>
 
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0e1a30">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AA News">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+    <script src="/static/pwa.js" defer></script>
+
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
     <script>
@@ -525,6 +537,8 @@
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
                 </svg>
             </a>
+            <button class="modebtn" id="install-btn" style="display:none">📲 Install</button>
+            <button class="modebtn" id="notify-btn">🔔 Alerts</button>
             <button class="modebtn" id="mode">🌙 Dark Mode</button>
         </div>
     </div>

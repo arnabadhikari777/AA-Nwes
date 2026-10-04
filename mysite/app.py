@@ -1,10 +1,21 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for
+from flask import Flask, render_template, jsonify, request, session, redirect, url_for, send_from_directory
 import requests
 import sqlite3
 import os
 import hmac
 import time
+import json
+from datetime import datetime, timedelta, timezone
+from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
+
+# pywebpush is optional: if it is not installed the site still works,
+# only the push notifications are switched off.
+try:
+    from pywebpush import webpush, WebPushException
+except ImportError:
+    webpush = None
+    WebPushException = Exception
 
 # Absolute path to the project folder, so the app works correctly
 # no matter what the current working directory is (important on PythonAnywhere).
@@ -38,6 +49,18 @@ ADMIN_PASSWORD = get_required_env("ADMIN_PASSWORD")
 # Secret token that protects the scheduled /cron/fetch link - comes from .env
 CRON_TOKEN = get_required_env("CRON_TOKEN")
 
+# Push-notification keys (optional). Without them push is simply disabled.
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:admin@example.com")
+PUSH_ENABLED = bool(webpush and VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY)
+
+# Notification limits, so readers are not spammed
+MAX_PUSH_PER_DAY = 3          # at most 3 breaking-news alerts a day
+MIN_MINUTES_BETWEEN_PUSH = 90 # and at least 90 minutes apart
+QUIET_HOURS_IST = (23, 6)     # no alerts from 11 PM to 6 AM (India time)
+MAX_SUBSCRIPTIONS = 5000
+
 # Absolute path to the database file, so the app works correctly
 # no matter what the current working directory is (important on PythonAnywhere).
 DB_PATH = os.path.join(BASE_DIR, 'news.db')
@@ -65,6 +88,26 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             slug TEXT UNIQUE,
             label TEXT
+        )
+    ''')
+
+    # Push notification tables (new, harmless: they do not touch the news table)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            endpoint TEXT UNIQUE,
+            p256dh TEXT,
+            auth TEXT,
+            created_at TEXT
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS push_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            news_id INTEGER,
+            title TEXT,
+            sent_at TEXT,
+            recipients INTEGER
         )
     ''')
 
@@ -176,7 +219,7 @@ def is_english_or_bengali(text):
     return other / len(letters) <= 0.1 and (bengali + latin) > 0
 
 
-def fetch_and_store(category=None):
+def fetch_and_store(category=None, save_as=None):
     """Pull one batch of news from NewsData.io and save it in the database.
 
     Returns a dict like {"category": "all", "saved": 7, "skipped": 3}.
@@ -197,9 +240,10 @@ def fetch_and_store(category=None):
     if data.get("status") != "success":
         raise RuntimeError(f"NewsData API error: {data.get('results')}")
 
-    save_as = category or "all"
+    save_as = save_as or category or "all"
     saved = 0
     skipped = 0
+    new_items = []
 
     conn = sqlite3.connect(DB_PATH, timeout=30)
     try:
@@ -234,30 +278,151 @@ def fetch_and_store(category=None):
                 (title, article.get("source_id"), article.get("image_url") or DEFAULT_IMAGE,
                  news_url, save_as, "")
             )
-            saved += cursor.rowcount
+            if cursor.rowcount:
+                saved += 1
+                new_items.append({
+                    "id": cursor.lastrowid, "title": title, "url": news_url,
+                    "image": article.get("image_url") or "",
+                })
         conn.commit()
     finally:
         conn.close()
 
-    return {"category": save_as, "saved": saved, "skipped": skipped}
+    return {"category": category or "all", "saved": saved, "skipped": skipped, "new_items": new_items}
 
 
 def pick_categories_for_this_run(full=False):
-    """Decides which categories to fetch in one scheduled run.
+    """Decides which API calls to make in one scheduled run.
 
-    Every run fetches 'all'. To save the free API credits, ONE extra category
-    is fetched per run, rotating through the list every 30 minutes:
-    2 API calls x 48 runs = 96 calls per day.
+    Returns a list of (api_category, save_as) pairs.
+    - 'top' is fetched first and saved on the home feed: these are the
+      candidates for the breaking-news notification.
+    - 'all' (general news) is fetched every run.
+    - ONE more category is fetched per run, rotating every 30 minutes.
+    That is 3 API calls x 48 runs = 144 calls a day (free plan: 200 credits).
     Pass full=True (/cron/fetch?full=1) to fetch every category once.
     """
     site_categories = [c["slug"] for c in get_all_categories()]
-    rotating = [c for c in site_categories if c in NEWSDATA_CATEGORIES]
+    rotating = [c for c in site_categories if c in NEWSDATA_CATEGORIES and c != "top"]
+    picks = [("top", "all"), (None, "all")]
     if full:
-        return ["all"] + rotating
-    picks = ["all"]
-    if rotating:
-        picks.append(rotating[int(time.time() // 1800) % len(rotating)])
+        picks += [(c, c) for c in rotating]
+    elif rotating:
+        c = rotating[int(time.time() // 1800) % len(rotating)]
+        picks.append((c, c))
     return picks
+
+
+# ---------------------------------------------------------------------------
+# 2b. Push notifications (breaking news to readers' phones)
+# ---------------------------------------------------------------------------
+
+def _ist_now():
+    return datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+
+
+def in_quiet_hours():
+    start, end = QUIET_HOURS_IST
+    h = _ist_now().hour
+    return h >= start or h < end
+
+
+def load_subscriptions():
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    rows = conn.execute("SELECT endpoint, p256dh, auth FROM push_subscriptions").fetchall()
+    conn.close()
+    return [{"endpoint": r[0], "keys": {"p256dh": r[1], "auth": r[2]}} for r in rows]
+
+
+def send_push_to_all(payload):
+    """Sends one notification to every subscribed phone.
+
+    Dead subscriptions (user uninstalled / blocked notifications) are removed.
+    Returns {"sent": n, "removed": n, "failed": n}.
+    """
+    subs = load_subscriptions()
+    if not subs:
+        return {"sent": 0, "removed": 0, "failed": 0}
+    body = json.dumps(payload)
+
+    def send_one(sub):
+        try:
+            webpush(
+                subscription_info=sub,
+                data=body,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": VAPID_SUBJECT},
+                ttl=3600,      # a breaking alert older than an hour is useless
+                timeout=10,
+            )
+            return ("ok", sub["endpoint"])
+        except WebPushException as e:
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            return ("gone" if status in (404, 410) else "fail", sub["endpoint"])
+        except Exception:
+            return ("fail", sub["endpoint"])
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        results = list(pool.map(send_one, subs))
+
+    gone = [ep for status, ep in results if status == "gone"]
+    if gone:
+        conn = sqlite3.connect(DB_PATH, timeout=30)
+        conn.executemany("DELETE FROM push_subscriptions WHERE endpoint=?", [(g,) for g in gone])
+        conn.commit()
+        conn.close()
+    return {
+        "sent": sum(1 for r in results if r[0] == "ok"),
+        "removed": len(gone),
+        "failed": sum(1 for r in results if r[0] == "fail"),
+    }
+
+
+def maybe_send_breaking_push(candidates):
+    """Takes the newly saved 'top' stories and sends at most ONE notification.
+
+    Returns a short text describing what happened (shown in the cron response).
+    """
+    if not PUSH_ENABLED:
+        return "push disabled"
+    if not candidates:
+        return "no new top story"
+    if in_quiet_hours():
+        return "quiet hours"
+
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    try:
+        today_start_ist = _ist_now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start_utc = (today_start_ist - timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+        sent_today = conn.execute("SELECT COUNT(*) FROM push_log WHERE sent_at >= ?", (today_start_utc,)).fetchone()[0]
+        last = conn.execute("SELECT sent_at FROM push_log ORDER BY id DESC LIMIT 1").fetchone()
+    finally:
+        conn.close()
+
+    if sent_today >= MAX_PUSH_PER_DAY:
+        return "daily limit reached"
+    if last:
+        last_dt = datetime.strptime(last[0], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) - last_dt < timedelta(minutes=MIN_MINUTES_BETWEEN_PUSH):
+            return "too soon after the last alert"
+
+    story = candidates[0]   # the API lists the newest story first
+    result = send_push_to_all({
+        "title": "🔴 Breaking · A.A.News",
+        "body": story["title"],
+        "image": story["image"] if str(story["image"]).startswith("https://") else "",
+        "url": story["url"],
+        "tag": "breaking-news",
+    })
+
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    conn.execute(
+        "INSERT INTO push_log (news_id, title, sent_at, recipients) VALUES (?, ?, ?, ?)",
+        (story["id"], story["title"], datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), result["sent"])
+    )
+    conn.commit()
+    conn.close()
+    return f"sent to {result['sent']} phones (removed {result['removed']}, failed {result['failed']})"
 
 
 # The database tables are created when the server starts.
@@ -333,23 +498,145 @@ def get_categories():
 
 # Scheduled fetch: called every 30 minutes by cron-job.org, even when nobody
 # is visiting the site. Protected by a secret token that lives in .env.
+def _token_ok():
+    token = request.args.get('token', '')
+    return hmac.compare_digest(token.encode('utf-8'), CRON_TOKEN.encode('utf-8'))
+
+
 @app.route('/cron/fetch')
 def cron_fetch():
-    token = request.args.get('token', '')
-    if not hmac.compare_digest(token.encode('utf-8'), CRON_TOKEN.encode('utf-8')):
+    if not _token_ok():
         return jsonify({"status": "forbidden"}), 403
 
     full = request.args.get('full') == '1'
     results = []
-    for cat in pick_categories_for_this_run(full=full):
+    top_new_items = []
+    for api_cat, save_as in pick_categories_for_this_run(full=full):
         try:
-            results.append(fetch_and_store(cat))
+            r = fetch_and_store(api_cat, save_as)
+            if api_cat == "top":
+                top_new_items = r["new_items"]
+            r.pop("new_items", None)
+            results.append(r)
         except Exception as e:
-            results.append({"category": cat, "error": str(e)})
+            results.append({"category": api_cat or "all", "error": str(e)})
+
+    try:
+        push_info = maybe_send_breaking_push(top_new_items)
+    except Exception as e:
+        push_info = f"push error: {e}"
 
     ok = any("error" not in r for r in results)
-    print("Scheduled fetch:", results)
-    return jsonify({"status": "ok" if ok else "failed", "results": results}), (200 if ok else 502)
+    print("Scheduled fetch:", results, "| push:", push_info)
+    return jsonify({"status": "ok" if ok else "failed", "results": results, "push": push_info}), (200 if ok else 502)
+
+
+# Sends a test notification to every subscribed phone (token protected)
+@app.route('/cron/test_push')
+def cron_test_push():
+    if not _token_ok():
+        return jsonify({"status": "forbidden"}), 403
+    if not PUSH_ENABLED:
+        return jsonify({"status": "push disabled", "hint": "check pywebpush and the VAPID keys in .env"}), 503
+    result = send_push_to_all({
+        "title": "A.A.News test",
+        "body": "Notifications are working. ✅",
+        "url": "/",
+        "tag": "test",
+    })
+    return jsonify({"status": "ok", **result})
+
+
+# ---------------------------------------------------------------------------
+# PWA files and subscription routes
+# ---------------------------------------------------------------------------
+
+@app.route('/manifest.webmanifest')
+def manifest():
+    data = {
+        "id": "/",
+        "name": "AA News",
+        "short_name": "AA News",
+        "description": "Latest news in English and Bengali, updated around the clock.",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "orientation": "portrait",
+        "background_color": "#0e1a30",
+        "theme_color": "#0e1a30",
+        "lang": "en",
+        "categories": ["news"],
+        "icons": [
+            {"src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+            {"src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+            {"src": "/static/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+            {"src": "/static/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+        ],
+    }
+    resp = jsonify(data)
+    resp.mimetype = 'application/manifest+json'
+    return resp
+
+
+# The service worker must be served from the site root so it can control every page
+@app.route('/sw.js')
+def service_worker():
+    resp = send_from_directory(os.path.join(BASE_DIR, 'static'), 'sw.js', mimetype='application/javascript')
+    resp.headers['Service-Worker-Allowed'] = '/'
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
+@app.route('/offline')
+def offline():
+    return render_template('offline.html')
+
+
+@app.route('/push/public-key')
+def push_public_key():
+    return jsonify({"key": VAPID_PUBLIC_KEY if PUSH_ENABLED else ""})
+
+
+@app.route('/push/subscribe', methods=['POST'])
+def push_subscribe():
+    if not PUSH_ENABLED:
+        return jsonify({"status": "push disabled"}), 503
+    data = request.get_json(silent=True) or {}
+    endpoint = data.get("endpoint", "")
+    keys = data.get("keys") or {}
+    p256dh, auth = keys.get("p256dh", ""), keys.get("auth", "")
+    if not (isinstance(endpoint, str) and endpoint.startswith("https://") and len(endpoint) < 1000
+            and isinstance(p256dh, str) and isinstance(auth, str)
+            and 0 < len(p256dh) < 200 and 0 < len(auth) < 100):
+        return jsonify({"status": "invalid subscription"}), 400
+
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    try:
+        count = conn.execute("SELECT COUNT(*) FROM push_subscriptions").fetchone()[0]
+        exists = conn.execute("SELECT 1 FROM push_subscriptions WHERE endpoint=?", (endpoint,)).fetchone()
+        if not exists and count >= MAX_SUBSCRIPTIONS:
+            return jsonify({"status": "subscription limit reached"}), 503
+        conn.execute(
+            "INSERT OR REPLACE INTO push_subscriptions (endpoint, p256dh, auth, created_at) VALUES (?, ?, ?, ?)",
+            (endpoint, p256dh, auth, datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return jsonify({"status": "subscribed"})
+
+
+@app.route('/push/unsubscribe', methods=['POST'])
+def push_unsubscribe():
+    data = request.get_json(silent=True) or {}
+    endpoint = data.get("endpoint", "")
+    if isinstance(endpoint, str) and endpoint:
+        conn = sqlite3.connect(DB_PATH, timeout=30)
+        conn.execute("DELETE FROM push_subscriptions WHERE endpoint=?", (endpoint,))
+        conn.commit()
+        conn.close()
+    return jsonify({"status": "unsubscribed"})
+
 
 # 6. Login page
 @app.route('/login', methods=['GET', 'POST'])
