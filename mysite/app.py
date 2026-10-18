@@ -869,6 +869,16 @@ def about():
 def privacy_policy():
     return render_template('privacy.html')
 
+@app.route('/contact')
+def contact():
+    return render_template('contactPage.html')
+
+# Old links (contactPage.html / contact-us) still work
+@app.route('/contactPage.html')
+@app.route('/contact-us')
+def contact_legacy():
+    return redirect(url_for('contact'), code=301)
+
 
 # ---------------------------------------------------------------
 # Live presence: how many people are on the site right now
