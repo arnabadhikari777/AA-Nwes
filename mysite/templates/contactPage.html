@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Contact us</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        background: #eef4ff;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+
+      .es-form {
+        width: 100%;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #07121f;
+        }
+      }
+
+      .es-form {
+        --es-bg: #fff;
+        --es-bd: #dde7f6;
+        --es-tx: #0a1b33;
+        --es-mu: #5f7396;
+        --es-in: #f6f9ff;
+        --es-inb: #c9d8ee;
+        --es-ac: #1a6dff;
+        --es-ac2: #19c3ff;
+        --es-or: #ff6a00;
+        --es-or2: #ffa11f;
+        --es-ring: rgba(26, 109, 255, 0.2);
+        --es-err: #d92d38;
+        --es-sh: 0 18px 50px rgba(20, 70, 170, 0.14);
+        --es-link: #0b57c4;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .es-form:not([data-theme="light"]) {
+          --es-bg: #0b1730;
+          --es-bd: #1c3560;
+          --es-tx: #e8f0ff;
+          --es-mu: #93a9cf;
+          --es-in: #071126;
+          --es-inb: #2a4676;
+          --es-ac: #3d94ff;
+          --es-ac2: #22d0ff;
+          --es-or: #ff8a2a;
+          --es-or2: #ffb347;
+          --es-ring: rgba(61, 148, 255, 0.3);
+          --es-err: #ff7b7b;
+          --es-sh: 0 24px 60px rgba(0, 0, 0, 0.55);
+          --es-link: #7ab8ff;
+        }
+      }
+
+      .es-form[data-theme="dark"] {
+        --es-bg: #0b1730;
+        --es-bd: #1c3560;
+        --es-tx: #e8f0ff;
+        --es-mu: #93a9cf;
+        --es-in: #071126;
+        --es-inb: #2a4676;
+        --es-ac: #3d94ff;
+        --es-ac2: #22d0ff;
+        --es-or: #ff8a2a;
+        --es-or2: #ffb347;
+        --es-ring: rgba(61, 148, 255, 0.3);
+        --es-err: #ff7b7b;
+        --es-sh: 0 24px 60px rgba(0, 0, 0, 0.55);
+        --es-link: #7ab8ff;
+      }
+
+      .es-form,
+      .es-form * {
+        box-sizing: border-box;
+      }
+
+      .es-form {
+        position: relative;
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 30px 28px 20px;
+        overflow: hidden;
+        color: var(--es-tx);
+        background: var(--es-bg);
+        border: 1px solid var(--es-bd);
+        border-radius: 24px;
+        box-shadow: var(--es-sh);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        transition:
+          background 0.25s,
+          border-color 0.25s;
+        animation: es-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      .es-form::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 5px;
+        background: linear-gradient(
+          90deg,
+          var(--es-ac),
+          var(--es-ac2),
+          var(--es-or2),
+          var(--es-or),
+          var(--es-ac)
+        );
+        background-size: 300% 100%;
+        animation: es-bar 6s linear infinite;
+      }
+
+      .es-form::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            260px 200px at 100% 0,
+            rgba(255, 122, 26, 0.13),
+            transparent 70%
+          ),
+          radial-gradient(
+            280px 220px at 0 100%,
+            rgba(26, 109, 255, 0.14),
+            transparent 70%
+          );
+      }
+
+      .es-form > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      @supports (background: linear-gradient(in oklch, red, blue)) {
+        .es-form::before {
+          background-image: linear-gradient(
+            90deg in oklch,
+            var(--es-ac),
+            var(--es-ac2),
+            var(--es-or2),
+            var(--es-or),
+            var(--es-ac)
+          );
+        }
+      }
+
+      @keyframes es-in {
+        from {
+          opacity: 0;
+          transform: translateY(18px) scale(0.98);
+        }
+
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @keyframes es-bar {
+        to {
+          background-position: 300% 0;
+        }
+      }
+
+      @keyframes es-up {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @keyframes es-float {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-2deg);
+        }
+
+        50% {
+          transform: translateY(-7px) rotate(2deg);
+        }
+      }
+
+      .es-head {
+        text-align: center;
+        margin: 2px 0 22px;
+        animation: es-up 0.6s 0.05s both;
+      }
+
+      .es-logo {
+        display: block;
+        width: 104px;
+        height: 104px;
+        margin: -4px auto 4px;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 20px rgba(26, 109, 255, 0.38));
+        animation: es-float 4.2s ease-in-out infinite;
+      }
+
+      .es-title {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        background: linear-gradient(100deg, var(--es-ac), var(--es-ac2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .es-sub {
+        margin: 6px 0 0;
+        font-size: 14px;
+        color: var(--es-mu);
+      }
+
+      .es-field {
+        margin-bottom: 16px;
+        animation: es-up 0.6s var(--d, 0.12s) both;
+      }
+
+      .es-field label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 7px;
+        font-size: 13.5px;
+        font-weight: 700;
+        transition: color 0.2s;
+      }
+
+      .es-field:focus-within label {
+        color: var(--es-ac);
+      }
+
+      .es-ctl {
+        position: relative;
+      }
+
+      .es-ico {
+        position: absolute;
+        left: 14px;
+        top: 15px;
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: var(--es-mu);
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+        transition:
+          stroke 0.2s,
+          transform 0.3s;
+      }
+
+      .es-field:focus-within .es-ico {
+        stroke: var(--es-or);
+        transform: scale(1.14);
+      }
+
+      .es-field input,
+      .es-field textarea {
+        display: block;
+        width: 100%;
+        padding: 13px 14px 13px 42px;
+        font: inherit;
+        font-size: 16px;
+        color: var(--es-tx);
+        background: var(--es-in);
+        border: 1.5px solid var(--es-inb);
+        border-radius: 14px;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.25s,
+          background 0.2s,
+          transform 0.2s;
+      }
+
+      .es-field input::placeholder,
+      .es-field textarea::placeholder {
+        color: var(--es-mu);
+        opacity: 0.65;
+      }
+
+      .es-field input:focus,
+      .es-field textarea:focus {
+        border-color: var(--es-ac);
+        box-shadow: 0 0 0 4px var(--es-ring);
+        transform: translateY(-1px);
+      }
+
+      .es-field textarea {
+        min-height: 128px;
+        resize: vertical;
+      }
+
+      .es-count {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--es-mu);
+      }
+
+      .es-hint {
+        display: none;
+        margin-top: 5px;
+        font-size: 12.5px;
+        color: var(--es-err);
+      }
+
+      .es-field.touched input:invalid,
+      .es-field.touched textarea:invalid {
+        border-color: var(--es-err);
+      }
+
+      .es-field.touched input:invalid ~ .es-hint,
+      .es-field.touched textarea:invalid ~ .es-hint {
+        display: block;
+      }
+
+      .es-msg {
+        display: none;
+        margin: 0 0 14px;
+        padding: 11px 14px;
+        font-size: 14px;
+        color: var(--es-err);
+        border: 1px solid var(--es-err);
+        border-radius: 12px;
+      }
+
+      .es-msg.show {
+        display: block;
+        animation: es-up 0.3s both;
+      }
+
+      .es-btn {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 14px 18px;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        color: #fff;
+        background: linear-gradient(
+          110deg,
+          var(--es-ac),
+          var(--es-ac2),
+          var(--es-ac)
+        );
+        background-size: 220% 100%;
+        border: 0;
+        border-radius: 14px;
+        cursor: pointer;
+        box-shadow: 0 10px 22px var(--es-ring);
+        transition:
+          transform 0.15s,
+          box-shadow 0.25s,
+          background-position 0.5s;
+        animation: es-up 0.6s 0.35s both;
+      }
+
+      .es-btn::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -70%;
+        width: 45%;
+        background: linear-gradient(
+          100deg,
+          transparent,
+          rgba(255, 255, 255, 0.45),
+          transparent
+        );
+        transform: skewX(-20deg);
+        animation: es-shine 3.4s ease-in-out infinite 1s;
+      }
+
+      @keyframes es-shine {
+        0%,
+        55% {
+          left: -70%;
+        }
+
+        100% {
+          left: 140%;
+        }
+      }
+
+      .es-btn:hover {
+        transform: translateY(-2px);
+        background-position: 100% 0;
+        box-shadow: 0 14px 28px rgba(255, 106, 0, 0.32);
+      }
+
+      .es-btn:active {
+        transform: translateY(0);
+      }
+
+      .es-btn svg {
+        width: 19px;
+        height: 19px;
+        fill: #fff;
+        transition: transform 0.35s;
+      }
+
+      .es-btn:hover svg {
+        transform: translate(4px, -3px) rotate(-8deg);
+      }
+
+      .es-btn:disabled {
+        opacity: 0.85;
+        cursor: progress;
+        transform: none;
+      }
+
+      .es-form.is-busy .es-btn svg {
+        animation: es-take 0.9s ease-in infinite;
+      }
+
+      @keyframes es-take {
+        0% {
+          transform: translate(0, 0);
+        }
+
+        70% {
+          transform: translate(26px, -18px);
+          opacity: 0;
+        }
+
+        71% {
+          transform: translate(-18px, 12px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translate(0, 0);
+          opacity: 1;
+        }
+      }
+
+      .es-hp {
+        position: absolute;
+        left: -9999px;
+        width: 0;
+        height: 0;
+        opacity: 0;
+      }
+
+      .es-done {
+        display: none;
+        position: relative;
+        text-align: center;
+        padding: 10px 0 6px;
+        outline: none;
+      }
+
+      .es-form.is-sent .es-body {
+        display: none;
+      }
+
+      .es-form.is-sent .es-done {
+        display: block;
+        animation: es-up 0.5s both;
+      }
+
+      .es-done svg.es-tick {
+        width: 84px;
+        height: 84px;
+        margin-bottom: 8px;
+      }
+
+      .es-done circle {
+        fill: rgba(26, 109, 255, 0.08);
+        stroke: var(--es-ac);
+        stroke-width: 2.5;
+        stroke-dasharray: 145;
+        stroke-dashoffset: 145;
+        animation: es-draw 0.7s ease forwards;
+      }
+
+      .es-done path {
+        fill: none;
+        stroke: var(--es-or);
+        stroke-width: 3.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 40;
+        stroke-dashoffset: 40;
+        animation: es-draw 0.45s 0.55s ease forwards;
+      }
+
+      @keyframes es-draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      .es-sparks {
+        position: absolute;
+        left: 50%;
+        top: 44px;
+        width: 0;
+        height: 0;
+      }
+
+      .es-sparks i {
+        position: absolute;
+        left: -4px;
+        top: -4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--es-ac);
+        opacity: 0;
+        animation: es-burst 0.95s 0.55s ease-out forwards;
+      }
+
+      .es-sparks i:nth-child(even) {
+        background: var(--es-or);
+      }
+
+      @keyframes es-burst {
+        0% {
+          opacity: 1;
+          transform: rotate(var(--a)) translateY(-30px) scale(1);
+        }
+
+        100% {
+          opacity: 0;
+          transform: rotate(var(--a)) translateY(-70px) scale(0.3);
+        }
+      }
+
+      .es-done h3 {
+        margin: 0 0 6px;
+        font-size: 23px;
+        font-weight: 800;
+        background: linear-gradient(100deg, var(--es-ac), var(--es-ac2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .es-done p {
+        margin: 0 auto 18px;
+        max-width: 300px;
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--es-mu);
+      }
+
+      .es-again {
+        padding: 10px 18px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--es-tx);
+        background: transparent;
+        border: 1.5px solid var(--es-inb);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .es-again:hover {
+        border-color: var(--es-ac);
+        color: var(--es-ac);
+        transform: translateY(-1px);
+      }
+
+      .es-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--es-bd);
+        font-size: 12.5px;
+        color: var(--es-mu);
+        text-decoration: none;
+      }
+
+      .es-badge img {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+        transition: transform 0.4s;
+      }
+
+      .es-badge:hover img {
+        transform: rotate(-10deg) scale(1.12);
+      }
+
+      .es-badge b {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--es-ac);
+      }
+
+      .es-badge b span {
+        color: var(--es-or);
+      }
+
+      @media (max-width: 420px) {
+        .es-form {
+          padding: 26px 18px 18px;
+          border-radius: 20px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .es-form,
+        .es-form *,
+        .es-form::before {
+          animation-duration: 0.001ms !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <form
+      class="es-form"
+      id="es-form"
+      data-theme="auto"
+      action="https://email-sender-wy5o.onrender.com/api/v1/mail/send"
+      method="POST"
+    >
+      <div class="es-head">
+        <img
+          class="es-logo"
+          src="https://res.cloudinary.com/khvkgpxq/image/upload/v1791965885/badge-logo-320.png"
+          data-fb="https://res.cloudinary.com/khvkgpxq/image/upload/w_64,h_64,c_fit,f_auto,q_auto/v1791551108/badge-logo.png"
+          alt="Email Sender"
+          width="104"
+          height="104"
+          onerror="if(this.dataset.f){this.style.display='none'}else{this.dataset.f=1;this.src=this.dataset.fb}"
+        />
+        <h2 class="es-title">Get in touch</h2>
+        <p class="es-sub">Send us a message and we will reply soon.</p>
+      </div>
+
+      <div class="es-body">
+        <input
+          type="hidden"
+          name="access_key"
+          value="Anubhab_email_sndr_e221578d3b6597a271ed3804ff1e1d48"
+        />
+        <input
+          type="text"
+          name="botcheck"
+          class="es-hp"
+          tabindex="-1"
+          autocomplete="off"
+          aria-hidden="true"
+        />
+
+        <div class="es-field" style="--d: 0.15s">
+          <label for="es-name">Name</label>
+          <div class="es-ctl">
+            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
+            <input
+              id="es-name"
+              type="text"
+              name="name"
+              placeholder="John Doe"
+              autocomplete="name"
+              required
+            />
+            <small class="es-hint">Please enter your name</small>
+          </div>
+        </div>
+
+        <div class="es-field" style="--d: 0.22s">
+          <label for="es-email">Email</label>
+          <div class="es-ctl">
+            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="3" />
+              <path d="m4 7 8 6 8-6" />
+            </svg>
+            <input
+              id="es-email"
+              type="email"
+              name="email"
+              placeholder="john@example.com"
+              autocomplete="email"
+              required
+            />
+            <small class="es-hint">Enter a valid email address</small>
+          </div>
+        </div>
+
+        <div class="es-field" style="--d: 0.29s">
+          <label for="es-subject">Subject</label>
+          <div class="es-ctl">
+            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12V4h8l10 10-8 8L3 12z" />
+              <circle cx="7.5" cy="8.5" r="1.2" />
+            </svg>
+            <input
+              id="es-subject"
+              type="text"
+              name="subject"
+              placeholder="How can we help?"
+              required
+            />
+            <small class="es-hint">Add a short subject</small>
+          </div>
+        </div>
+
+        <div class="es-field" style="--d: 0.36s">
+          <label for="es-text">
+            Message
+            <span class="es-count">0 / 1000</span>
+          </label>
+          <div class="es-ctl ta">
+            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 5h16v11H9l-5 4V5z" />
+            </svg>
+            <textarea
+              id="es-text"
+              name="message"
+              rows="5"
+              maxlength="1000"
+              placeholder="Write your message..."
+              required
+            ></textarea>
+            <small class="es-hint">Write a few words</small>
+          </div>
+        </div>
+
+        <p class="es-msg" role="alert"></p>
+        <button type="submit" class="es-btn">
+          <span class="es-btn-t">Send message</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 11.5 21 4l-7.5 17-2.4-7.1L3 11.5z" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="es-done" role="status" aria-live="polite" tabindex="-1">
+        <div class="es-sparks" aria-hidden="true">
+          <i style="--a: 0deg"></i>
+          <i style="--a: 45deg"></i>
+          <i style="--a: 90deg"></i>
+          <i style="--a: 135deg"></i>
+          <i style="--a: 180deg"></i>
+          <i style="--a: 225deg"></i>
+          <i style="--a: 270deg"></i>
+          <i style="--a: 315deg"></i>
+        </div>
+        <svg class="es-tick" viewBox="0 0 52 52" aria-hidden="true">
+          <circle cx="26" cy="26" r="23" />
+          <path d="M15 27l8 8 14-16" />
+        </svg>
+        <h3>Message sent!</h3>
+        <p>Thank you for reaching out. We will get back to you soon.</p>
+        <button type="button" class="es-again">Send another message</button>
+      </div>
+
+      <a
+        class="es-badge"
+        href="https://email-sender-wy5o.onrender.com"
+        target="_blank"
+        rel="noopener"
+      >
+        Powered by
+        <img
+          src="https://res.cloudinary.com/khvkgpxq/image/upload/v1791965885/badge-logo-320.png"
+          data-fb="https://res.cloudinary.com/khvkgpxq/image/upload/w_64,h_64,c_fit,f_auto,q_auto/v1791551108/badge-logo.png"
+          alt=""
+          onerror="if(this.dataset.f){this.style.display='none'}else{this.dataset.f=1;this.src=this.dataset.fb}"
+        />
+        <b>Email <span>Sender</span></b>
+      </a>
+    </form>
+
+    <script>
+      (function () {
+        var form = document.getElementById("es-form");
+        var msg = form.querySelector(".es-msg");
+        var btn = form.querySelector(".es-btn");
+        var btnText = btn.querySelector(".es-btn-t");
+        var label = btnText.textContent;
+        var area = form.querySelector("textarea");
+        var count = form.querySelector(".es-count");
+        var OUTBOX = "es-outbox";
+        var RETRY = [3000, 8000, 20000, 45000, 90000];
+
+        function uid() {
+          try {
+            return crypto.randomUUID();
+          } catch (e) {}
+          return (
+            "es" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12)
+          );
+        }
+
+        function load() {
+          try {
+            return JSON.parse(localStorage.getItem(OUTBOX)) || [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function save(list) {
+          try {
+            localStorage.setItem(OUTBOX, JSON.stringify(list));
+          } catch (e) {}
+        }
+
+        function drop(id) {
+          var list = load().filter(function (m) {
+            return m.id !== id;
+          });
+          save(list);
+        }
+
+        // Wake the server up (if the host was sleeping) as soon as the form is
+        // opened or focused, so it is ready before the visitor finishes typing.
+        var warmed = false;
+        function warm() {
+          if (warmed) return;
+          warmed = true;
+          try {
+            fetch(form.action.replace(/send$/, "ping"), {
+              mode: "no-cors",
+              cache: "no-store",
+            }).catch(function () {});
+          } catch (e) {}
+        }
+        form.addEventListener("focusin", warm);
+        form.addEventListener("pointerdown", warm);
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (entries, observer) {
+            if (entries[0].isIntersecting) {
+              warm();
+              observer.disconnect();
+            }
+          }).observe(form);
+        }
+
+        function updateCount() {
+          if (area && count) {
+            var max = area.maxLength > 0 ? area.maxLength : 1000;
+            count.textContent = area.value.length + " / " + max;
+          }
+        }
+        if (area) {
+          area.addEventListener("input", updateCount);
+          updateCount();
+        }
+
+        function touch(el) {
+          var field = el.closest(".es-field");
+          if (field) field.classList.add("touched");
+        }
+        form.querySelectorAll("input,textarea").forEach(function (el) {
+          el.addEventListener("blur", function () {
+            touch(el);
+          });
+        });
+        function onInvalid(e) {
+          touch(e.target);
+        }
+        form.addEventListener("invalid", onInvalid, true);
+
+        // Re-sending the same submissionId is safe (duplicates are dropped).
+        function onResponse(res) {
+          if (res.ok) return { ok: true };
+          // 400-403 = bad form or key, retrying will not help
+          var isFinal = res.status >= 400 && res.status <= 403;
+          return { ok: false, final: isFinal, status: res.status };
+        }
+        function onNetworkError() {
+          return { ok: false, final: false, status: 0 };
+        }
+        function post(item) {
+          var body = item.body;
+          if (typeof body === "string") body = new URLSearchParams(body);
+          return fetch(item.action, {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body: body,
+            keepalive: body.toString().length < 60000,
+          }).then(onResponse, onNetworkError);
+        }
+
+        function deliver(item, n) {
+          return post(item).then(function (r) {
+            if (r.ok || r.final) {
+              drop(item.id);
+              return r;
+            }
+            // Out of retries: it stays in the outbox, retried on the next visit.
+            if (n >= RETRY.length) return r;
+            return new Promise(function (resolve) {
+              setTimeout(resolve, RETRY[n]);
+            }).then(function () {
+              return deliver(item, n + 1);
+            });
+          });
+        }
+
+        // Anything that could not be sent last time (tab closed or offline) is
+        // sent again as soon as the page opens.
+        var DAY = 24 * 3600 * 1000;
+        load().forEach(function (item) {
+          if (Date.now() - item.t > DAY) return drop(item.id);
+          if (item.action === form.action) deliver(item, 1);
+        });
+
+        function showSent() {
+          form.reset();
+          updateCount();
+          form.querySelectorAll(".touched").forEach(function (field) {
+            field.classList.remove("touched");
+          });
+          form.classList.add("is-sent");
+          form.querySelector(".es-done").focus();
+        }
+
+        function fail(r) {
+          if (r.status === 0) {
+            msg.textContent = "Network error. Please check your connection.";
+          } else if (r.status === 429) {
+            msg.textContent =
+              "Too many messages. Please try again in a little while.";
+          } else if (r.status === 401 || r.status === 403) {
+            msg.textContent = "This form is not set up correctly.";
+          } else {
+            msg.textContent = "Something went wrong. Please try again.";
+          }
+          msg.classList.add("show");
+        }
+
+        function idle() {
+          form.classList.remove("is-busy");
+          btn.disabled = false;
+          btnText.textContent = label;
+        }
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          msg.classList.remove("show");
+          form.classList.add("is-busy");
+          btn.disabled = true;
+          btnText.textContent = "Sending...";
+
+          var data = new FormData(form);
+          var id = uid();
+          data.set("submissionId", id);
+          // Full link of the page the form was filled on (port included)
+          data.set("pageUrl", window.location.href);
+          var item = {
+            id: id,
+            action: form.action,
+            body: new URLSearchParams(data),
+            t: Date.now(),
+          };
+          // Keep the message on the device first, in case the server is asleep.
+          var list = load();
+          list.push({
+            id: id,
+            action: item.action,
+            body: item.body.toString(),
+            t: item.t,
+          });
+          save(list);
+
+          var settled = false;
+          function finish(r) {
+            if (settled) return;
+            settled = true;
+            if (r.ok) showSent();
+            else fail(r);
+            idle();
+          }
+
+          // The server usually answers in 1-2 seconds. After 2.5 seconds the
+          // visitor is not kept waiting: we show "sent" while the real delivery
+          // carries on in the background with retries.
+          var timer = setTimeout(function () {
+            finish({ ok: true });
+          }, 2500);
+          deliver(item, 0).then(function (r) {
+            clearTimeout(timer);
+            if (!settled) finish(r);
+          });
+        });
+
+        form.querySelector(".es-again").addEventListener("click", function () {
+          form.classList.remove("is-sent");
+        });
+      })();
+    </script>
+  </body>
+</html>
