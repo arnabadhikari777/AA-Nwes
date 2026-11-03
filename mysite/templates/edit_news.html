@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit News - A.A.News</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,6 +38,8 @@
             max-width: 640px;
             border-top: 5px solid var(--gold);
         }
+        .header-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+        .header-brand img { width:40px; height:40px; border-radius:11px; flex:none; box-shadow:0 4px 12px rgba(0,0,0,.18); }
         .header {
             display: flex;
             justify-content: space-between;
@@ -114,7 +119,7 @@
 
 <div class="admin-container">
     <div class="header">
-        <h2>✏️ Edit News</h2>
+        <a href="/" class="header-brand" style="text-decoration:none"><img src="/static/icons/logo-128.png" width="40" height="40" alt="A.A.News"><h2>✏️ Edit News</h2></a>
         <a href="/admin" class="back-btn">← Back to Dashboard</a>
     </div>
 

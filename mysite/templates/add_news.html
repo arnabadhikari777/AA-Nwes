@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - A.A.News</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
 <script>
@@ -44,6 +47,8 @@
             max-width: 640px;
             border-top: 5px solid var(--gold);
         }
+        .header-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+        .header-brand img { width:40px; height:40px; border-radius:11px; flex:none; box-shadow:0 4px 12px rgba(0,0,0,.18); }
         .header {
             display: flex;
             justify-content: space-between;
@@ -139,7 +144,7 @@
 
 <div class="admin-container">
     <div class="header">
-        <h2>📝 Write News</h2>
+        <a href="/" class="header-brand" style="text-decoration:none"><img src="/static/icons/logo-128.png" width="40" height="40" alt="A.A.News"><h2>📝 Write News</h2></a>
         <div style="display:flex; gap:8px;">
             <a href="/admin" class="logout-btn" style="background:linear-gradient(120deg,#0e1a30,#16223c);">Dashboard</a>
             <a href="/logout" class="logout-btn">Logout</a>

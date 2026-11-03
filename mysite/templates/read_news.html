@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ news[0] }} - A.A.News</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
 <script>
@@ -28,6 +31,7 @@
         body { font-family: 'Noto Serif Bengali', 'Inter', serif; background-color: var(--cream); margin: 0; padding: 0; color: #2c3345; }
         .navbar { background: linear-gradient(120deg, var(--navy) 0%, var(--navy-soft) 100%); padding: 18px 22px; text-align: center; box-shadow: 0 4px 16px rgba(14,26,48,0.18); }
         .navbar a { color: white; text-decoration: none; font-size: 24px; font-weight: 800; font-family: 'Playfair Display', serif; letter-spacing: 0.3px; }
+        .navbar a img { width:34px; height:34px; border-radius:10px; vertical-align:middle; margin-right:10px; }
         .navbar a span { color: var(--gold); }
 
         .article-container { max-width: 800px; margin: 40px auto; background: #fffdf9; padding: 34px; border-radius: 14px; box-shadow: 0 12px 34px rgba(14,26,48,0.10); border: 1px solid #e6ddc9; }
@@ -50,7 +54,7 @@
 <body>
 
     <div class="navbar">
-        <a href="/">A.A.<span>News</span></a>
+        <a href="/"><img src="/static/icons/logo-128.png" width="34" height="34" alt="">A.A.<span>News</span></a>
     </div>
 
     <div class="article-container">

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0b0720">
     <title>Admin Dashboard - A.A.News</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -33,10 +36,8 @@
         /* Topbar */
         .topbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:22px; animation:fade .7s ease backwards; }
         .brand { display:flex; align-items:center; gap:14px; }
-        .emblem { position:relative; overflow:hidden; width:52px; height:52px; border-radius:17px; display:grid; place-items:center; animation:bob 3.4s ease-in-out infinite; box-shadow:0 8px 28px rgba(168,85,247,.55); }
-        .emblem i { position:absolute; left:50%; top:50%; width:200%; aspect-ratio:1; transform:translate(-50%,-50%); background:conic-gradient(#22d3ee,#a855f7,#f472b6,#fb923c,#facc15,#22d3ee); animation:rot 4s linear infinite; will-change:transform; }
-        .emblem::before { content:""; position:absolute; inset:3px; border-radius:14px; background:#120a33; z-index:1; }
-        .emblem svg { position:relative; z-index:2; width:26px; height:26px; fill:none; stroke:#fff; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
+        .emblem { overflow:hidden; width:52px; height:52px; border-radius:17px; display:block; flex:none; animation:bob 3.4s ease-in-out infinite; box-shadow:0 8px 28px rgba(16,185,129,.5); }
+        .emblem img { width:100%; height:100%; display:block; }
         .brand h1 { margin:0; font:800 clamp(20px,5vw,26px) 'Sora',sans-serif; letter-spacing:-.5px; }
         .brand small { display:inline-flex; align-items:center; gap:8px; margin-top:6px; padding:3px 11px; border-radius:999px; font-size:11px; font-weight:600; color:var(--soft); background:rgba(255,255,255,.07); border:1px solid var(--line); }
         .brand small i { width:7px; height:7px; border-radius:50%; background:#a3e635; animation:pulse 1.8s infinite; }
@@ -168,7 +169,7 @@
 
     <div class="topbar">
         <div class="brand">
-            <span class="emblem"><i></i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 12 5l7 14M8.5 14h7"/></svg></span>
+            <span class="emblem"><img src="/static/icons/logo-128.png" width="52" height="52" alt="A.A.News"></span>
             <div><h1>A.A.<span class="rb">News</span> Admin</h1><small><i></i><span id="clock">Control Center</span></small></div>
         </div>
         <div class="actions">

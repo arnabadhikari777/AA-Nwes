@@ -1,6 +1,6 @@
 /* A.A.News service worker: offline support + push notifications */
-const CACHE = 'aa-news-v1';
-const PRECACHE = ['/offline', '/static/icons/icon-192.png', '/static/icons/badge-96.png'];
+const CACHE = 'aa-news-v2';
+const PRECACHE = ['/offline', '/static/icons/icon-192.png', '/static/icons/logo-128.png', '/static/icons/badge-96.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));

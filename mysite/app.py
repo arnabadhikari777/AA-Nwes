@@ -563,8 +563,8 @@ def manifest():
         "scope": "/",
         "display": "standalone",
         "orientation": "portrait",
-        "background_color": "#0e1a30",
-        "theme_color": "#0e1a30",
+        "background_color": "#0a2117",
+        "theme_color": "#064e3b",
         "lang": "en",
         "categories": ["news"],
         "icons": [
