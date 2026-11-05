@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
@@ -166,7 +166,8 @@ body.dark-theme .alert.ok{color:var(--g300)}
     </style>
 </head>
 <body>
-    <script>try{var t=localStorage.getItem('aa-theme');if(t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add('dark-theme');}catch(e){}</script>
+{% include "_guard.html" %}
+    <script nonce="{{ csp_nonce() }}">try{var t=localStorage.getItem('aa-theme');if(t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add('dark-theme');}catch(e){}</script>
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
     <div class="admin-wrap">
@@ -187,6 +188,7 @@ body.dark-theme .alert.ok{color:var(--g300)}
             {% endif %}
 
             <form action="/add_news" method="POST">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="field">
                     <label for="f-title">News Title</label>
                     <input id="f-title" type="text" name="title" required placeholder="e.g.: New rule effective from today...">
@@ -217,7 +219,7 @@ body.dark-theme .alert.ok{color:var(--g300)}
             <a href="/" class="back-link">Return to Website</a>
         </div>
     </div>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
 (function(){var b=document.getElementById('aa-mode');if(!b)return;b.addEventListener('click',function(){var d=document.body.classList.toggle('dark-theme');try{localStorage.setItem('aa-theme',d?'dark':'light');}catch(e){}var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#022c22':'#064e3b');});})();
 </script>
 </body>

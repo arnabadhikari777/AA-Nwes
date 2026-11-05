@@ -21,7 +21,7 @@
 
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-M4Q795Q81V"></script>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
@@ -347,7 +347,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   </head>
 <body>
-    <script>try{var t=localStorage.getItem('aa-theme');if(t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add('dark-theme');}catch(e){}</script>
+{% include "_guard.html" %}
+    <script nonce="{{ csp_nonce() }}">try{var t=localStorage.getItem('aa-theme');if(t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add('dark-theme');}catch(e){}</script>
 
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <div id="read-progress"></div>
@@ -518,7 +519,7 @@
         </div>
     </footer>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const body = document.body;
         const modeBtn = document.querySelector("#mode");
 
@@ -672,7 +673,7 @@
 
                 html += `
                     <div class="news-card" style="--c:${badgeColor};--d:${delay}ms">
-                        <div class="thumb"><img src="${esc(imageUrl)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${NO_IMG}'"></div>
+                        <div class="thumb"><img src="${esc(imageUrl)}" alt="" loading="lazy" data-fb="${NO_IMG}"></div>
                         <div class="card-content">
                             <span class="category-badge">${esc(sourceName)}</span>
                             <h3 class="news-title">${esc(news.title)}</h3>

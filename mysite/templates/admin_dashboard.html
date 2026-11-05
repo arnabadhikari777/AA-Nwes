@@ -164,6 +164,7 @@
     </style>
 </head>
 <body>
+{% include "_guard.html" %}
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="wrap">
 
@@ -226,7 +227,8 @@
                     <span>{{ cat.label }}</span>
                     {% if cat.slug != 'all' %}
                     <form method="POST" action="/admin/delete_category/{{ cat.slug }}"
-                          onsubmit="return confirm('Delete category \'{{ cat.label }}\'? Existing news in it will move to All / Home.');">
+                          data-confirm="Delete category '{{ cat.label }}'? Existing news in it will move to All / Home.">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="del-cat-btn" title="Delete category">×</button>
                     </form>
                     {% endif %}
@@ -235,6 +237,7 @@
         </div>
 
         <form class="add-cat-form" method="POST" action="/admin/add_category">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="label" placeholder="New category name (e.g. Education, Gaming)" required>
             <button type="submit" class="btn btn-sky">+ Add Category</button>
         </form>
@@ -262,7 +265,8 @@
                         <div class="row-actions">
                             <a href="/admin/edit/{{ news.id }}" class="btn btn-sky btn-small">Edit</a>
                             <form method="POST" action="/admin/delete/{{ news.id }}"
-                                  onsubmit="return confirm('Delete this news item permanently?');">
+                                  data-confirm="Delete this news item permanently?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-rose btn-small">Delete</button>
                             </form>
                         </div>
@@ -286,7 +290,7 @@
 
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
 (function () {
     const $ = id => document.getElementById(id);
     const PHONE = '<svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>';

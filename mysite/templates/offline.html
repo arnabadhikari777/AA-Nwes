@@ -13,10 +13,11 @@ h1{font-size:2.1rem;margin:.5em 0 .2em;letter-spacing:-.02em;background:linear-g
 p{color:#9cc5b3;max-width:420px;line-height:1.65;margin:.6em auto}
 button{background:linear-gradient(120deg,#10b981,#14b8a6 45%,#a3e635);color:#022c22;border:0;border-radius:999px;padding:13px 30px;font-weight:800;font-size:1rem;cursor:pointer;margin-top:12px;box-shadow:0 8px 22px rgba(16,185,129,.35)}
 button:focus-visible{outline:3px solid #a3e635;outline-offset:3px}
-</style></head><body><div>
+</style></head><body>
+{% include "_guard.html" %}<div>
 <img src="/static/icons/logo-256.png" width="96" height="96" alt="AA News">
 <h1>You're offline</h1>
 <p>No internet connection right now. Check your connection and try again — the latest headlines will be waiting.</p>
-<button onclick="location.reload()">Try again</button>
+<button type="button" data-reload>Try again</button>
 <p dir="auto">ইন্টারনেট সংযোগ নেই। সংযোগ ঠিক করে আবার চেষ্টা করুন।</p>
 </div></body></html>

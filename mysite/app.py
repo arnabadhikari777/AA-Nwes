@@ -41,6 +41,10 @@ app = Flask(__name__)
 # Secret key for session (required for the login system) - comes from .env
 app.secret_key = get_required_env("SECRET_KEY")
 
+# Security layer: HTTPS redirect, CSRF protection, security headers + CSP (see security.py)
+from security import init_security
+init_security(app)
+
 # Your NewsData.io API KEY - comes from .env
 api_key = get_required_env("NEWSDATA_API_KEY")
 
