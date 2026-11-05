@@ -19,3 +19,9 @@ venv/
 .local/
 .ipython/
 .virtualenvs/
+
+# Databases (live data stays on the server)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
