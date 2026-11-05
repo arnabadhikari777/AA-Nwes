@@ -199,7 +199,7 @@ NEWSDATA_CATEGORIES = {
     "science", "sports", "technology", "top", "tourism", "world",
 }
 
-DEFAULT_IMAGE = "https://dummyimage.com/600x300/131921/ff9d00.png&text=A.A.News"
+DEFAULT_IMAGE = "https://dummyimage.com/600x300/064e3b/a7f3d0.png&text=A.A.News"
 
 
 def is_english_or_bengali(text):
@@ -676,7 +676,7 @@ def add_news():
 
         # If no image is given, a default image will be used
         if not image_url:
-            image_url = "https://dummyimage.com/600x300/131921/ff9d00.png&text=A.A.News"
+            image_url = "https://dummyimage.com/600x300/064e3b/a7f3d0.png&text=A.A.News"
 
         if title and content:
             try:
@@ -757,7 +757,7 @@ def edit_news(news_id):
         category = request.form.get('category')
 
         if not image_url:
-            image_url = "https://dummyimage.com/600x300/131921/ff9d00.png&text=A.A.News"
+            image_url = "https://dummyimage.com/600x300/064e3b/a7f3d0.png&text=A.A.News"
 
         try:
             cursor.execute('''

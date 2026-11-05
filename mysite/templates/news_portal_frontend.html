@@ -240,6 +240,8 @@
         .footer-section ul li a:hover { color:var(--lime); transform:translateX(6px); }
         .footer-bottom { position:relative; z-index:1; text-align:center; margin-top:34px; padding-top:22px; border-top:1px solid rgba(167,243,208,.18); color:#7fc3a5; font-size:.88rem; }
         .footer-bottom p { margin:4px 0; }
+        .footer-bottom .collab-link { color:var(--lime); font-weight:700; text-decoration:none; }
+        .footer-bottom .collab-link:hover { text-decoration:underline; }
         @media (min-width:768px) { .footer-container { flex-direction:row; justify-content:space-between; } .footer-section { flex:1; margin:0 15px; } }
 
         /* ===== Phone layout ===== */
@@ -342,7 +344,8 @@
             .news-card { opacity:1; transform:none; }
         }
     </style>
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  </head>
 <body>
     <script>try{var t=localStorage.getItem('aa-theme');if(t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add('dark-theme');}catch(e){}</script>
 
@@ -511,6 +514,7 @@
         <div class="footer-bottom">
             <p>&copy; 2026 A.A.News. All Rights Reserved.</p>
             <p>Created by Arnab Adhikari &amp; Anubhab Dutta.</p>
+            <p>Contact form powered by <a class="collab-link" href="/contact">Email Sender</a> <i class="fa-solid fa-handshake es-hs" aria-hidden="true"></i> A.A.News</p>
         </div>
     </footer>
 

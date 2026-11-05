@@ -1,5 +1,5 @@
 /* A.A.News service worker: offline support + push notifications */
-const CACHE = 'aa-news-v2';
+const CACHE = 'aa-news-v3';
 const PRECACHE = ['/offline', '/static/icons/icon-192.png', '/static/icons/logo-128.png', '/static/icons/badge-96.png'];
 
 self.addEventListener('install', (event) => {
