@@ -1,1889 +1,2137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#064e3b" />
-    <title>Contact us - A.A.News</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="64x64" href="/static/icons/favicon-64.png">
-    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@500;600;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-    :root {
-      --g50: #ecfdf5;
-      --g200: #a7f3d0;
-      --g300: #6ee7b7;
-      --g400: #34d399;
-      --g500: #10b981;
-      --g600: #059669;
-      --g700: #047857;
-      --g800: #065f46;
-      --g900: #064e3b;
-      --g950: #022c22;
-      --lime: #a3e635;
-      --teal: #14b8a6;
-      --orange: #ec6a0c;
-      --orange2: #ffb347;
-      --blue: #0b8fd0; /* Email Sender logo blue (a bit deeper for the light theme) */
-      --bg: #effcf5;
-      --text: #08261c;
-      --soft: #4b6b5e;
-      --card: rgba(255,255,255,.78);
-      --card-line: rgba(16,185,129,.22);
-      --glass: rgba(255,255,255,.74);
-      --input: #f6fffa;
-      --input-line: #b7e4cf;
-      --ring: rgba(16,185,129,.28);
-      --shadow: 0 10px 30px rgba(6,78,59,.10);
-      --shadow-hi: 0 22px 50px rgba(5,150,105,.26);
-      --grad: linear-gradient(120deg,var(--g500),var(--teal) 45%,var(--lime));
-      --err: #c62828;
-      --err-bg: rgba(220,38,38,.08);
-      --ok-bg: rgba(16,185,129,.12);
-    }
-
-    body.dark-theme {
-      --orange: #ff8a2a;
-      --blue: #0fa4e8; /* Email Sender logo blue */
-      --bg: #03140e;
-      --text: #e6fbf1;
-      --soft: #9cc5b3;
-      --card: rgba(8,38,28,.78);
-      --card-line: rgba(52,211,153,.2);
-      --glass: rgba(4,26,19,.78);
-      --input: #04201a;
-      --input-line: #1f5a47;
-      --ring: rgba(52,211,153,.3);
-      --shadow: 0 10px 30px rgba(0,0,0,.45);
-      --shadow-hi: 0 22px 50px rgba(16,185,129,.22);
-      --err: #ff8a8a;
-      --err-bg: rgba(255,90,90,.12);
-      --ok-bg: rgba(52,211,153,.14);
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter','Noto Sans Bengali',Arial,sans-serif;
-      line-height: 1.6;
-      overflow-x: hidden;
-      position: relative;
-      transition: background-color .4s ease,color .4s ease;
-    }
-
-    a {
-      color: inherit;
-    }
-
-    a:focus-visible,
-    button:focus-visible,
-    input:focus-visible,
-    select:focus-visible,
-    textarea:focus-visible {
-      outline: 3px solid var(--lime);
-      outline-offset: 2px;
-    }
-
-    @keyframes flow {
-      to {
-        background-position: 200% 0;
-      }
-    }
-
-    @keyframes drift {
-      to {
-        transform: translate3d(8vmax,6vmax,0) scale(1.15) rotate(25deg);
-      }
-    }
-
-    @keyframes float {
-      50% {
-        transform: translateY(-22px) scale(1.07);
-      }
-    }
-
-    /* Aurora background */
-    .aurora {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .aurora i {
-      position: absolute;
-      width: 55vmax;
-      height: 55vmax;
-      border-radius: 50%;
-      filter: blur(90px);
-      opacity: .45;
-      animation: drift 22s ease-in-out infinite alternate;
-    }
-
-    .aurora i:nth-child(1) {
-      background: radial-gradient(circle,#34d399,transparent 65%);
-      top: -18vmax;
-      left: -14vmax;
-    }
-
-    .aurora i:nth-child(2) {
-      background: radial-gradient(circle,#a3e635,transparent 65%);
-      top: 30vh;
-      right: -22vmax;
-      animation-duration: 28s;
-      opacity: .3;
-    }
-
-    .aurora i:nth-child(3) {
-      background: radial-gradient(circle,#14b8a6,transparent 65%);
-      bottom: -24vmax;
-      left: 15vw;
-      animation-duration: 34s;
-    }
-
-    body.dark-theme .aurora i {
-      opacity: .3;
-    }
-
-    body.dark-theme .aurora i:nth-child(2) {
-      opacity: .16;
-    }
-
-    /* Top bar */
-    .aa-nav {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 18px;
-      background: var(--glass);
-      border-bottom: 1px solid var(--card-line);
-      backdrop-filter: blur(18px) saturate(160%);
-      -webkit-backdrop-filter: blur(18px) saturate(160%);
-    }
-
-    .aa-brand {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      text-decoration: none;
-      flex: none;
-    }
-
-    .aa-brand .emblem {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      overflow: hidden;
-      display: block;
-      box-shadow: 0 6px 18px rgba(16,185,129,.45);
-      transition: transform .5s cubic-bezier(.3,1.6,.5,1);
-    }
-
-    .aa-brand:hover .emblem {
-      transform: rotate(-10deg) scale(1.08);
-    }
-
-    .aa-brand img {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .aa-brand .wm {
-      font: 800 21px/1 'Sora',sans-serif;
-      letter-spacing: -.4px;
-      white-space: nowrap;
-    }
-
-    .aa-brand .wm b {
-      background: var(--grad);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: flow 5s linear infinite;
-    }
-
-    .aa-links {
-      display: flex;
-      gap: 6px;
-      flex: 1;
-      min-width: 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-      overscroll-behavior-x: contain;
-    }
-
-    .aa-links::-webkit-scrollbar {
-      display: none;
-    }
-
-    .aa-links a {
-      flex: none;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 8px 16px;
-      border-radius: 999px;
-      color: var(--soft);
-      border: 1px solid transparent;
-      transition: color .25s,background .25s,border-color .25s;
-    }
-
-    .aa-links a:hover {
-      color: var(--g600);
-      border-color: var(--card-line);
-    }
-
-    .aa-links a.on {
-      color: var(--g700);
-      background: rgba(16,185,129,.16);
-      border-color: var(--card-line);
-      font-weight: 700;
-    }
-
-    body.dark-theme .aa-links a:hover,
-    body.dark-theme .aa-links a.on {
-      color: var(--g300);
-    }
-
-    .aa-ico {
-      width: 40px;
-      height: 40px;
-      padding: 0;
-      border-radius: 50%;
-      display: inline-grid;
-      place-items: center;
-      flex: none;
-      position: relative;
-      background: var(--card);
-      border: 1px solid var(--card-line);
-      color: var(--g700);
-      cursor: pointer;
-      text-decoration: none;
-      transition: transform .25s cubic-bezier(.3,1.6,.5,1),background .25s,color .25s,box-shadow .25s;
-    }
-
-    body.dark-theme .aa-ico {
-      color: var(--g300);
-    }
-
-    .aa-ico:hover {
-      transform: translateY(-2px) scale(1.06);
-      background: var(--grad);
-      color: #022c22;
-      box-shadow: 0 8px 20px rgba(16,185,129,.4);
-    }
-
-    .aa-ico svg {
-      position: absolute;
-      width: 19px;
-      height: 19px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      transition: transform .6s cubic-bezier(.3,1.5,.5,1),opacity .4s;
-    }
-
-    .aa-ico .i-sun {
-      transform: rotate(-120deg) scale(.3);
-      opacity: 0;
-    }
-
-    body.dark-theme .aa-ico .i-sun {
-      transform: none;
-      opacity: 1;
-    }
-
-    body.dark-theme .aa-ico .i-moon {
-      transform: rotate(120deg) scale(.3);
-      opacity: 0;
-    }
-
-    /* Page + banner + panel */
-    .page {
-      max-width: 880px;
-      margin: 0 auto;
-      padding: 26px 18px 6px;
-    }
-
-    .banner {
-      position: relative;
-      overflow: hidden;
-      isolation: isolate;
-      text-align: center;
-      border-radius: 28px;
-      padding: 38px 24px 34px;
-      color: #effff7;
-      background: linear-gradient(125deg,var(--g900),var(--g700) 45%,var(--teal) 80%,var(--lime));
-      background-size: 220% 220%;
-      animation: flow 14s ease infinite;
-      box-shadow: var(--shadow-hi);
-    }
-
-    .banner::before,
-    .banner::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      z-index: -1;
-      border: 2px solid rgba(255,255,255,.18);
-      animation: float 9s ease-in-out infinite;
-    }
-
-    .banner::before {
-      width: 260px;
-      height: 260px;
-      right: -70px;
-      top: -90px;
-      background: radial-gradient(circle,rgba(255,255,255,.25),transparent 70%);
-    }
-
-    .banner::after {
-      width: 160px;
-      height: 160px;
-      left: 8%;
-      bottom: -70px;
-      animation-delay: -4s;
-      background: radial-gradient(circle,rgba(163,230,53,.4),transparent 70%);
-    }
-
-    .banner img {
-      display: block;
-      width: 72px;
-      height: 72px;
-      margin: 0 auto;
-      border-radius: 20px;
-      box-shadow: 0 10px 26px rgba(0,0,0,.3);
-    }
-
-    .banner h1 {
-      font: 800 clamp(30px,6vw,44px)/1.15 'Sora','Noto Sans Bengali',sans-serif;
-      letter-spacing: -.8px;
-      margin: 16px 0 8px;
-    }
-
-    .banner p {
-      margin: 0;
-      font-size: 15px;
-      color: #c9f5df;
-    }
-
-    .panel {
-      background: var(--card);
-      border: 1px solid var(--card-line);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      padding: 34px 36px;
-      margin-top: 22px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-
-    .prose h2 {
-      position: relative;
-      margin: 36px 0 16px;
-      padding-bottom: 13px;
-      font: 800 clamp(20px,3vw,25px)/1.3 'Sora','Noto Sans Bengali',sans-serif;
-      letter-spacing: -.3px;
-      color: var(--text);
-    }
-
-    .prose h2:first-child {
-      margin-top: 0;
-    }
-
-    .prose h2::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      width: 56px;
-      height: 4px;
-      border-radius: 4px;
-      background: var(--grad);
-    }
-
-    .prose {
-      overflow-wrap: anywhere;
-    }
-
-    .prose p,
-    .prose li {
-      color: var(--soft);
-      font-size: 15.5px;
-      line-height: 1.85;
-    }
-
-    .prose p {
-      margin: 0 0 16px;
-    }
-
-    .prose strong {
-      color: var(--text);
-    }
-
-    .prose a {
-      color: var(--g600);
-      font-weight: 700;
-    }
-
-    body.dark-theme .prose a {
-      color: var(--g300);
-    }
-
-    .prose ul {
-      padding-left: 20px;
-      margin: 0 0 16px;
-    }
-
-    .prose li {
-      margin-bottom: 8px;
-    }
-
-    .prose li::marker {
-      color: var(--g500);
-    }
-
-    .prose .lede {
-      font-size: 17.5px;
-      color: var(--text);
-    }
-
-    .callout {
-      margin: 26px 0;
-      padding: 22px 24px;
-      border-radius: 18px;
-      border: 1px solid var(--card-line);
-      border-left: 5px solid var(--g500);
-      background: rgba(16,185,129,.1);
-    }
-
-    .callout strong {
-      display: block;
-      margin-bottom: 6px;
-      font-family: 'Sora',sans-serif;
-      color: var(--g700);
-    }
-
-    body.dark-theme .callout strong {
-      color: var(--g300);
-    }
-
-    .callout p {
-      margin: 0;
-      font-size: 16px;
-      color: var(--text);
-    }
-
-    .cover {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 6px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .cover li {
-      margin: 0;
-      padding: 16px 18px;
-      border-radius: 18px;
-      border: 1px solid var(--card-line);
-      background: var(--card);
-      font-size: 14.5px;
-      line-height: 1.65;
-      transition: transform .3s cubic-bezier(.3,1.6,.5,1),border-color .25s;
-    }
-
-    .cover li:hover {
-      transform: translateY(-3px);
-      border-color: var(--g400);
-    }
-
-    .cover strong {
-      display: block;
-      margin-bottom: 4px;
-      font: 700 16px 'Sora','Noto Sans Bengali',sans-serif;
-      color: var(--text);
-    }
-
-    .cta-row {
-      text-align: center;
-      margin: 28px 0 8px;
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 26px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      font: 800 14px 'Inter',sans-serif;
-      color: #022c22;
-      background: var(--grad);
-      background-size: 200% 200%;
-      box-shadow: 0 8px 22px rgba(16,185,129,.35);
-      transition: transform .25s cubic-bezier(.3,1.6,.5,1),box-shadow .25s;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(16,185,129,.45);
-      animation: flow 2s linear infinite;
-    }
-
-    .btn:active {
-      transform: scale(.96);
-    }
-
-    .btn.ghost {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--card-line);
-      box-shadow: none;
-    }
-
-    .btn.ghost:hover {
-      border-color: var(--g400);
-      box-shadow: 0 8px 20px rgba(16,185,129,.2);
-    }
-
-    .btn.deep {
-      background: linear-gradient(135deg,var(--g900),var(--g700) 60%,var(--teal));
-      color: #effff7;
-    }
-
-    .btn.danger {
-      background: linear-gradient(120deg,#dc2626,#f97316);
-      color: #fff;
-      box-shadow: 0 8px 22px rgba(220,38,38,.3);
-    }
-
-    .btn.small {
-      padding: 9px 16px;
-      font-size: 13px;
-    }
-
-    .btn.block {
-      width: 100%;
-      padding: 14px;
-    }
-
-    /* Forms */
-    .field {
-      margin-bottom: 18px;
-    }
-
-    .field label {
-      display: block;
-      margin-bottom: 7px;
-      font-weight: 700;
-      font-size: 13.5px;
-    }
-
-    .field input,
-    .field select,
-    .field textarea {
-      display: block;
-      width: 100%;
-      padding: 12px 14px;
-      font: inherit;
-      font-size: 15px;
-      color: var(--text);
-      background: var(--input);
-      border: 1.5px solid var(--input-line);
-      border-radius: 14px;
-      outline: none;
-      transition: border-color .2s,box-shadow .25s;
-    }
-
-    .field input:focus,
-    .field select:focus,
-    .field textarea:focus {
-      border-color: var(--g400);
-      box-shadow: 0 0 0 4px var(--ring);
-    }
-
-    .field input::placeholder,
-    .field textarea::placeholder {
-      color: var(--soft);
-      opacity: .7;
-    }
-
-    .field textarea {
-      resize: vertical;
-      min-height: 150px;
-      line-height: 1.6;
-    }
-
-    .hint {
-      margin: 7px 0 0;
-      font-size: 12.5px;
-      color: var(--soft);
-    }
-
-    .alert {
-      padding: 12px 14px;
-      margin-bottom: 18px;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .alert.err {
-      color: var(--err);
-      background: var(--err-bg);
-      border: 1px solid var(--err);
-    }
-
-    .alert.ok {
-      color: var(--g700);
-      background: var(--ok-bg);
-      border: 1px solid var(--g400);
-    }
-
-    body.dark-theme .alert.ok {
-      color: var(--g300);
-    }
-
-    /* Admin / login cards */
-    .center-wrap {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 22px 16px;
-    }
-
-    .admin-wrap {
-      padding: 30px 16px 40px;
-    }
-
-    .card-x {
-      position: relative;
-      overflow: hidden;
-      width: 100%;
-      margin: 0 auto;
-      background: var(--card);
-      border: 1px solid var(--card-line);
-      border-radius: 26px;
-      box-shadow: var(--shadow-hi);
-      padding: 32px 30px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-
-    .card-x::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 5px;
-      background: var(--grad);
-      background-size: 200% 100%;
-      animation: flow 5s linear infinite;
-    }
-
-    .card-x.narrow {
-      max-width: 380px;
-      text-align: center;
-    }
-
-    .card-x.wide {
-      max-width: 680px;
-    }
-
-    .ahead {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin: 4px 0 22px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--card-line);
-    }
-
-    .ahead .ttl {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-      text-decoration: none;
-    }
-
-    .ahead .ttl img {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      flex: none;
-      box-shadow: 0 6px 16px rgba(16,185,129,.4);
-    }
-
-    .ahead h1 {
-      margin: 0;
-      font: 800 20px 'Sora','Noto Sans Bengali',sans-serif;
-      letter-spacing: -.3px;
-    }
-
-    .ahead .acts {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .back-link {
-      display: block;
-      text-align: center;
-      margin-top: 20px;
-      text-decoration: none;
-      color: var(--soft);
-      font-weight: 700;
-      font-size: 13.5px;
-      transition: color .2s;
-    }
-
-    .back-link:hover {
-      color: var(--g500);
-    }
-
-    .aa-foot {
-      text-align: center;
-      color: var(--soft);
-      font-size: 13px;
-      padding: 26px 16px calc(32px + env(safe-area-inset-bottom,0px));
-    }
-
-    @media (max-width:640px) {
-      .aa-nav {
-        padding: 9px 12px;
-        gap: 8px;
-      }
-      .aa-brand .wm {
-        display: none;
-      }
-      .page {
-        padding: 18px 12px 4px;
-      }
-      .banner {
-        padding: 30px 18px 26px;
-        border-radius: 24px;
-      }
-      .panel {
-        padding: 24px 20px;
-        border-radius: 22px;
-      }
-      .cover {
-        grid-template-columns: 1fr;
-      }
-      .card-x {
-        padding: 28px 20px 24px;
-        border-radius: 22px;
-      }
-    }
-
-    @media (prefers-reduced-motion:reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-      }
-    }
-
-    /* ===== Contact card: A.A.News x Email Sender ===== */
-    .es-wrap {
-      padding: 26px 16px 10px;
-    }
-
-    .es-form {
-      --es-or: var(--orange);
-      position: relative;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 30px 28px 20px;
-      overflow: hidden;
-      color: var(--text);
-      background: var(--card);
-      border: 1px solid var(--card-line);
-      border-radius: 26px;
-      box-shadow: var(--shadow-hi);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      animation: es-in .75s cubic-bezier(.22,1,.36,1) both;
-    }
-
-    .es-form::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 5px;
-      background: linear-gradient(90deg,var(--g500),var(--teal),var(--lime),var(--orange2),var(--orange),var(--g500));
-      background-size: 300% 100%;
-      animation: es-bar 6s linear infinite;
-    }
-
-    .es-form::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(260px 200px at 100% 0,rgba(255,138,42,.14),transparent 70%),radial-gradient(280px 220px at 0 100%,rgba(16,185,129,.2),transparent 70%);
-    }
-
-    .es-form>* {
-      position: relative;
-      z-index: 1;
-    }
-
-    @keyframes es-in {
-      from {
-        opacity: 0;
-        transform: translateY(18px) scale(.98);
-      }
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-
-    @keyframes es-bar {
-      to {
-        background-position: 300% 0;
-      }
-    }
-
-    @keyframes es-up {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-
-    @keyframes es-float {
-      0%, 100% {
-        transform: translateY(0) rotate(-2deg);
-      }
-      50% {
-        transform: translateY(-7px) rotate(2deg);
-      }
-    }
-
-    .es-head {
-      text-align: center;
-      margin: 2px 0 22px;
-      animation: es-up .6s .05s both;
-    }
-
-    .es-collab-logos {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      margin: 2px 0 16px;
-    }
-
-    .lg {
-      width: 88px;
-      height: 88px;
-      border-radius: 26px;
-      display: grid;
-      place-items: center;
-      flex: none;
-      animation: es-float 4.2s ease-in-out infinite;
-    }
-
-    .lg.aa {
-      overflow: hidden;
-      box-shadow: 0 12px 30px rgba(16,185,129,.45);
-    }
-
-    .lg.aa img {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .lg.es {
-      animation-delay: -2s;
-      filter: drop-shadow(0 10px 18px rgba(255,138,42,.4));
-    }
-
-    .lg.es img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-
-    .lg.es svg.fb {
-      display: none;
-      width: 68%;
-      height: 68%;
-      fill: var(--orange);
-    }
-
-    .lg.es.noimg svg.fb {
-      display: block;
-    }
-
-    .plus {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      flex: none;
-      font-size: 23px;
-      line-height: 1;
-      color: var(--orange);
-      border: 1px solid var(--card-line);
-      background: var(--card);
-    }
-
-    .es-collab {
-      margin: 0 0 14px;
-      font: 800 15px 'Inter',sans-serif;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-
-    .es-collab .a {
-      background: linear-gradient(100deg,var(--g600),var(--teal));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    body.dark-theme .es-collab .a {
-      background-image: linear-gradient(100deg,var(--g400),var(--lime));
-    }
-
-    .es-collab .es-hs {
-      margin: 0 4px;
-      font-size: 1.25em;
-      vertical-align: -.1em;
-      background: linear-gradient(90deg,var(--g500),var(--orange));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .es-collab .e {
-      color: var(--orange);
-    }
-
-    .es-collab .e .es-blue {
-      color: var(--blue);
-    }
-
-    .es-title {
-      margin: 0;
-      font: 800 clamp(28px,7vw,32px)/1.2 'Sora','Noto Sans Bengali',sans-serif;
-      letter-spacing: -.02em;
-      background: linear-gradient(100deg,var(--g600),var(--teal) 55%,var(--g500));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    body.dark-theme .es-title {
-      background-image: linear-gradient(100deg,var(--g400),var(--lime));
-    }
-
-    .es-sub {
-      margin: 8px 0 0;
-      font-size: 15px;
-      color: var(--soft);
-    }
-
-    .es-field {
-      margin-bottom: 16px;
-      animation: es-up .6s var(--d,.12s) both;
-    }
-
-    .es-field label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 7px;
-      font-size: 14px;
-      font-weight: 700;
-      transition: color .2s;
-    }
-
-    .es-field:focus-within label {
-      color: var(--g600);
-    }
-
-    body.dark-theme .es-field:focus-within label {
-      color: var(--g300);
-    }
-
-    .es-ctl {
-      position: relative;
-    }
-
-    .es-ico {
-      position: absolute;
-      left: 14px;
-      top: 15px;
-      width: 18px;
-      height: 18px;
-      fill: none;
-      stroke: var(--soft);
-      stroke-width: 1.8;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      pointer-events: none;
-      transition: stroke .2s,transform .3s;
-    }
-
-    .es-field:focus-within .es-ico {
-      stroke: var(--orange);
-      transform: scale(1.14);
-    }
-
-    .es-field input,
-    .es-field textarea {
-      display: block;
-      width: 100%;
-      padding: 13px 14px 13px 42px;
-      font: inherit;
-      font-size: 16px;
-      color: var(--text);
-      background: var(--input);
-      border: 1.5px solid var(--input-line);
-      border-radius: 14px;
-      outline: none;
-      transition: border-color .2s,box-shadow .25s,transform .2s;
-    }
-
-    .es-field input::placeholder,
-    .es-field textarea::placeholder {
-      color: var(--soft);
-      opacity: .65;
-    }
-
-    .es-field input:focus,
-    .es-field textarea:focus {
-      border-color: var(--g400);
-      box-shadow: 0 0 0 4px var(--ring);
-      transform: translateY(-1px);
-    }
-
-    .es-field textarea {
-      min-height: 128px;
-      resize: vertical;
-    }
-
-    .es-count {
-      font-size: 11.5px;
-      font-weight: 500;
-      color: var(--soft);
-    }
-
-    .es-hint {
-      display: none;
-      margin-top: 5px;
-      font-size: 12.5px;
-      color: var(--err);
-    }
-
-    .es-field.touched input:invalid,
-    .es-field.touched textarea:invalid {
-      border-color: var(--err);
-    }
-
-    .es-field.touched input:invalid ~ .es-hint,
-    .es-field.touched textarea:invalid ~ .es-hint {
-      display: block;
-    }
-
-    .es-msg {
-      display: none;
-      margin: 0 0 14px;
-      padding: 11px 14px;
-      font-size: 14px;
-      color: var(--err);
-      border: 1px solid var(--err);
-      border-radius: 12px;
-    }
-
-    .es-msg.show {
-      display: block;
-      animation: es-up .3s both;
-    }
-
-    .es-btn {
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 14px 18px;
-      font: inherit;
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: .01em;
-      color: #022c22;
-      background: linear-gradient(110deg,var(--g500),var(--lime),var(--g500));
-      background-size: 220% 100%;
-      border: 0;
-      border-radius: 14px;
-      cursor: pointer;
-      box-shadow: 0 10px 22px var(--ring);
-      transition: transform .15s,box-shadow .25s,background-position .5s;
-      animation: es-up .6s .35s both;
-    }
-
-    .es-btn::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: -70%;
-      width: 45%;
-      background: linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
-      transform: skewX(-20deg);
-      animation: es-shine 3.4s ease-in-out infinite 1s;
-    }
-
-    @keyframes es-shine {
-      0%, 55% {
-        left: -70%;
-      }
-      100% {
-        left: 140%;
-      }
-    }
-
-    .es-btn:hover {
-      transform: translateY(-2px);
-      background-position: 100% 0;
-      box-shadow: 0 14px 28px rgba(16,185,129,.4);
-    }
-
-    .es-btn:active {
-      transform: translateY(0);
-    }
-
-    .es-btn svg {
-      width: 19px;
-      height: 19px;
-      fill: #022c22;
-      transition: transform .35s;
-    }
-
-    .es-btn:hover svg {
-      transform: translate(4px,-3px) rotate(-8deg);
-    }
-
-    .es-btn:disabled {
-      opacity: .85;
-      cursor: progress;
-      transform: none;
-    }
-
-    .es-form.is-busy .es-btn svg {
-      animation: es-take .9s ease-in infinite;
-    }
-
-    @keyframes es-take {
-      0% {
-        transform: translate(0,0);
-      }
-      70% {
-        transform: translate(26px,-18px);
-        opacity: 0;
-      }
-      71% {
-        transform: translate(-18px,12px);
-        opacity: 0;
-      }
-      100% {
-        transform: translate(0,0);
-        opacity: 1;
-      }
-    }
-
-    .es-hp {
-      position: absolute;
-      left: -9999px;
-      width: 0;
-      height: 0;
-      opacity: 0;
-    }
-
-    .es-done {
-      display: none;
-      position: relative;
-      text-align: center;
-      padding: 10px 0 6px;
-      outline: none;
-    }
-
-    .es-form.is-sent .es-body {
-      display: none;
-    }
-
-    .es-form.is-sent .es-done {
-      display: block;
-      animation: es-up .5s both;
-    }
-
-    .es-done svg.es-tick {
-      width: 84px;
-      height: 84px;
-      margin-bottom: 8px;
-    }
-
-    .es-done circle {
-      fill: rgba(16,185,129,.1);
-      stroke: var(--g500);
-      stroke-width: 2.5;
-      stroke-dasharray: 145;
-      stroke-dashoffset: 145;
-      animation: es-draw .7s ease forwards;
-    }
-
-    .es-done path {
-      fill: none;
-      stroke: var(--orange);
-      stroke-width: 3.4;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-dasharray: 40;
-      stroke-dashoffset: 40;
-      animation: es-draw .45s .55s ease forwards;
-    }
-
-    @keyframes es-draw {
-      to {
-        stroke-dashoffset: 0;
-      }
-    }
-
-    .es-sparks {
-      position: absolute;
-      left: 50%;
-      top: 44px;
-      width: 0;
-      height: 0;
-    }
-
-    .es-sparks i {
-      position: absolute;
-      left: -4px;
-      top: -4px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--g500);
-      opacity: 0;
-      animation: es-burst .95s .55s ease-out forwards;
-    }
-
-    .es-sparks i:nth-child(even) {
-      background: var(--orange);
-    }
-
-    @keyframes es-burst {
-      0% {
-        opacity: 1;
-        transform: rotate(var(--a)) translateY(-30px) scale(1);
-      }
-      100% {
-        opacity: 0;
-        transform: rotate(var(--a)) translateY(-70px) scale(.3);
-      }
-    }
-
-    .es-done h3 {
-      margin: 0 0 6px;
-      font: 800 23px 'Sora',sans-serif;
-      background: linear-gradient(100deg,var(--g600),var(--teal));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    body.dark-theme .es-done h3 {
-      background-image: linear-gradient(100deg,var(--g400),var(--lime));
-    }
-
-    .es-done p {
-      margin: 0 auto 18px;
-      max-width: 300px;
-      font-size: 15px;
-      line-height: 1.6;
-      color: var(--soft);
-    }
-
-    .es-again {
-      padding: 10px 18px;
-      font: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      background: transparent;
-      border: 1.5px solid var(--input-line);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    .es-again:hover {
-      border-color: var(--g400);
-      color: var(--g600);
-      transform: translateY(-1px);
-    }
-
-    body.dark-theme .es-again:hover {
-      color: var(--g300);
-    }
-
-    .es-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 18px;
-      padding-top: 14px;
-      border-top: 1px dashed var(--card-line);
-      font-size: 12.5px;
-      color: var(--soft);
-      text-decoration: none;
-    }
-
-    .es-badge img {
-      width: 34px;
-      height: 34px;
-      object-fit: contain;
-      transition: transform .4s;
-    }
-
-    .es-badge:hover img {
-      transform: rotate(-10deg) scale(1.12);
-    }
-
-    .es-badge b {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--g600);
-    }
-
-    body.dark-theme .es-badge b {
-      color: var(--g400);
-    }
-
-    .es-badge b .es-blue {
-      color: var(--blue);
-    }
-
-    .es-badge b .es-orange {
-      color: var(--orange);
-    }
-
-    .es-note {
-      max-width: 480px;
-      margin: 18px auto 0;
-      text-align: center;
-      font-size: 13px;
-      color: var(--soft);
-    }
-
-    .es-note a {
-      color: var(--g600);
-      font-weight: 700;
-    }
-
-    body.dark-theme .es-note a {
-      color: var(--g300);
-    }
-
-    @media (max-width:420px) {
-      .es-form {
-        padding: 26px 18px 18px;
-        border-radius: 22px;
-      }
-      .lg {
-        width: 80px;
-        height: 80px;
-        border-radius: 24px;
-      }
-    }
-    </style>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-  </head>
-  <body>
-{% include "_guard.html" %}
-    <!-- Apply the saved (or system) theme before the page paints -->
-    <script nonce="{{ csp_nonce() }}">
-      try {
-        var t = localStorage.getItem('aa-theme');
-        if (t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches)
-          document.body.classList.add('dark-theme');
-      } catch (e) {}
-    </script>
-    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-    <nav class="aa-nav" aria-label="Main">
-      <a class="aa-brand" href="/" aria-label="A.A.News home">
-        <span class="emblem">
-          <img src="/static/icons/logo-128.png" width="40" height="40" alt="" />
-        </span>
-        <span class="wm">A.A.<b>News</b></span>
-      </a>
-
-      <div class="aa-links">
-        <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/contact" class="on" aria-current="page">Contact</a>
-        <a href="/privacy-policy">Privacy</a>
-      </div>
-
-      <button class="aa-ico" id="aa-mode" type="button" aria-label="Toggle dark mode" title="Dark / light mode">
-        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" />
-        </svg>
-        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-        </svg>
-      </button>
-    </nav>
-
-    <main class="es-wrap">
-    <form
-      class="es-form"
-      id="es-form"
-      action="https://email-sender-wy5o.onrender.com/api/v1/mail/send"
-      method="POST"
-    >
-      <div class="es-head">
-        <div class="es-collab-logos">
-          <span class="lg aa"><img src="/static/icons/logo-256.png" width="88" height="88" alt="A.A.News" /></span>
-          <span class="plus" aria-hidden="true">+</span>
-          <span class="lg es">
-            <img
-              src="https://res.cloudinary.com/khvkgpxq/image/upload/v1791965885/badge-logo-320.png"
-              data-fb="https://res.cloudinary.com/khvkgpxq/image/upload/w_64,h_64,c_fit,f_auto,q_auto/v1791551108/badge-logo.png"
-              alt="Email Sender"
-              width="88"
-              height="88"
-            />
-            <svg class="fb" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 21 4l-7.5 17-2.4-7.1L3 11.5z" /></svg>
-          </span>
-        </div>
-        <p class="es-collab">
-          <span class="a">A.A. News</span>
-          <i class="fa-solid fa-handshake es-hs" aria-hidden="true"></i>
-          <span class="e"><span class="es-blue">Email</span> Sender</span>
-        </p>
-        <h1 class="es-title">Get in touch</h1>
-        <p class="es-sub">Send us a message and we will reply soon.</p>
-      </div>
-
-      <div class="es-body">
-        <input
-          type="hidden"
-          name="access_key"
-          value="Anubhab_email_sndr_dcba71ef22a6c6ffd7dc4538e5dc5730"
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
-        <input
-          type="text"
-          name="botcheck"
-          class="es-hp"
-          tabindex="-1"
-          autocomplete="off"
-          aria-hidden="true"
+        <meta name="theme-color" content="#064e3b" />
+        <title>Contact us - A.A.News</title>
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/static/icons/favicon-32.png"
         />
-
-        <div class="es-field" style="--d: 0.15s">
-          <label for="es-name">Name</label>
-          <div class="es-ctl">
-            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
-            </svg>
-            <input
-              id="es-name"
-              type="text"
-              name="name"
-              placeholder="John Doe"
-              autocomplete="name"
-              required
-            />
-            <small class="es-hint">Please enter your name</small>
-          </div>
-        </div>
-
-        <div class="es-field" style="--d: 0.22s">
-          <label for="es-email">Email</label>
-          <div class="es-ctl">
-            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="3" />
-              <path d="m4 7 8 6 8-6" />
-            </svg>
-            <input
-              id="es-email"
-              type="email"
-              name="email"
-              placeholder="john@example.com"
-              autocomplete="email"
-              required
-            />
-            <small class="es-hint">Enter a valid email address</small>
-          </div>
-        </div>
-
-        <div class="es-field" style="--d: 0.29s">
-          <label for="es-subject">Subject</label>
-          <div class="es-ctl">
-            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 12V4h8l10 10-8 8L3 12z" />
-              <circle cx="7.5" cy="8.5" r="1.2" />
-            </svg>
-            <input
-              id="es-subject"
-              type="text"
-              name="subject"
-              placeholder="How can we help?"
-              required
-            />
-            <small class="es-hint">Add a short subject</small>
-          </div>
-        </div>
-
-        <div class="es-field" style="--d: 0.36s">
-          <label for="es-text">
-            Message
-            <span class="es-count">0 / 1000</span>
-          </label>
-          <div class="es-ctl ta">
-            <svg class="es-ico" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 5h16v11H9l-5 4V5z" />
-            </svg>
-            <textarea
-              id="es-text"
-              name="message"
-              rows="5"
-              maxlength="1000"
-              placeholder="Write your message..."
-              required
-            ></textarea>
-            <small class="es-hint">Write a few words</small>
-          </div>
-        </div>
-
-        <p class="es-msg" role="alert"></p>
-        <button type="submit" class="es-btn">
-          <span class="es-btn-t">Send message</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 11.5 21 4l-7.5 17-2.4-7.1L3 11.5z" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="es-done" role="status" aria-live="polite" tabindex="-1">
-        <div class="es-sparks" aria-hidden="true">
-          <i style="--a: 0deg"></i>
-          <i style="--a: 45deg"></i>
-          <i style="--a: 90deg"></i>
-          <i style="--a: 135deg"></i>
-          <i style="--a: 180deg"></i>
-          <i style="--a: 225deg"></i>
-          <i style="--a: 270deg"></i>
-          <i style="--a: 315deg"></i>
-        </div>
-        <svg class="es-tick" viewBox="0 0 52 52" aria-hidden="true">
-          <circle cx="26" cy="26" r="23" />
-          <path d="M15 27l8 8 14-16" />
-        </svg>
-        <h3>Message sent!</h3>
-        <p>Thank you for reaching out. We will get back to you soon.</p>
-        <button type="button" class="es-again">Send another message</button>
-      </div>
-
-      <a
-        class="es-badge"
-        href="https://email-sender-wy5o.onrender.com"
-        target="_blank"
-        rel="noopener"
-      >
-        Powered by
-        <img
-          src="https://res.cloudinary.com/khvkgpxq/image/upload/v1791965885/badge-logo-320.png"
-          data-fb="https://res.cloudinary.com/khvkgpxq/image/upload/w_64,h_64,c_fit,f_auto,q_auto/v1791551108/badge-logo.png"
-          alt=""
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="64x64"
+            href="/static/icons/favicon-64.png"
         />
-        <b><span class="es-blue">Email</span> <span class="es-orange">Sender</span></b>
-      </a>
-    </form>
-    <p class="es-note">A.A.News and Email Sender work together so your message reaches our team directly.</p>
-    </main>
-
-    <footer class="aa-foot">&copy; 2026 A.A.News &middot; Created by Arnab Adhikari &amp; Anubhab Dutta</footer>
-
-    <script nonce="{{ csp_nonce() }}">
-      (function () {
-        var form = document.getElementById("es-form");
-        var msg = form.querySelector(".es-msg");
-        var btn = form.querySelector(".es-btn");
-        var btnText = btn.querySelector(".es-btn-t");
-        var label = btnText.textContent;
-        var area = form.querySelector("textarea");
-        var count = form.querySelector(".es-count");
-        var OUTBOX = "es-outbox";
-        var RETRY = [3000, 8000, 20000, 45000, 90000];
-
-        function uid() {
-          try {
-            return crypto.randomUUID();
-          } catch (e) {}
-          return (
-            "es" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12)
-          );
-        }
-
-        function load() {
-          try {
-            return JSON.parse(localStorage.getItem(OUTBOX)) || [];
-          } catch (e) {
-            return [];
-          }
-        }
-
-        function save(list) {
-          try {
-            localStorage.setItem(OUTBOX, JSON.stringify(list));
-          } catch (e) {}
-        }
-
-        function drop(id) {
-          var list = load().filter(function (m) {
-            return m.id !== id;
-          });
-          save(list);
-        }
-
-        // Wake the server up (if the host was sleeping) as soon as the form is
-        // opened or focused, so it is ready before the visitor finishes typing.
-        var warmed = false;
-        function warm() {
-          if (warmed) return;
-          warmed = true;
-          try {
-            fetch(form.action.replace(/send$/, "ping"), {
-              mode: "no-cors",
-              cache: "no-store",
-            }).catch(function () {});
-          } catch (e) {}
-        }
-        form.addEventListener("focusin", warm);
-        form.addEventListener("pointerdown", warm);
-        if ("IntersectionObserver" in window) {
-          new IntersectionObserver(function (entries, observer) {
-            if (entries[0].isIntersecting) {
-              warm();
-              observer.disconnect();
+        <link
+            rel="apple-touch-icon"
+            href="/static/icons/apple-touch-icon.png"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@500;600;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --g50: #ecfdf5;
+                --g200: #a7f3d0;
+                --g300: #6ee7b7;
+                --g400: #34d399;
+                --g500: #10b981;
+                --g600: #059669;
+                --g700: #047857;
+                --g800: #065f46;
+                --g900: #064e3b;
+                --g950: #022c22;
+                --lime: #a3e635;
+                --teal: #14b8a6;
+                --orange: #ec6a0c;
+                --orange2: #ffb347;
+                --blue: #0b8fd0; /* Email Sender logo blue (a bit deeper for the light theme) */
+                --bg: #effcf5;
+                --text: #08261c;
+                --soft: #4b6b5e;
+                --card: rgba(255, 255, 255, 0.78);
+                --card-line: rgba(16, 185, 129, 0.22);
+                --glass: rgba(255, 255, 255, 0.74);
+                --input: #f6fffa;
+                --input-line: #b7e4cf;
+                --ring: rgba(16, 185, 129, 0.28);
+                --shadow: 0 10px 30px rgba(6, 78, 59, 0.1);
+                --shadow-hi: 0 22px 50px rgba(5, 150, 105, 0.26);
+                --grad: linear-gradient(
+                    120deg,
+                    var(--g500),
+                    var(--teal) 45%,
+                    var(--lime)
+                );
+                --err: #c62828;
+                --err-bg: rgba(220, 38, 38, 0.08);
+                --ok-bg: rgba(16, 185, 129, 0.12);
             }
-          }).observe(form);
-        }
 
-        function updateCount() {
-          if (area && count) {
-            var max = area.maxLength > 0 ? area.maxLength : 1000;
-            count.textContent = area.value.length + " / " + max;
-          }
-        }
-        if (area) {
-          area.addEventListener("input", updateCount);
-          updateCount();
-        }
-
-        function touch(el) {
-          var field = el.closest(".es-field");
-          if (field) field.classList.add("touched");
-        }
-        form.querySelectorAll("input,textarea").forEach(function (el) {
-          el.addEventListener("blur", function () {
-            touch(el);
-          });
-        });
-        function onInvalid(e) {
-          touch(e.target);
-        }
-        form.addEventListener("invalid", onInvalid, true);
-
-        // Re-sending the same submissionId is safe (duplicates are dropped).
-        function onResponse(res) {
-          if (res.ok) return { ok: true };
-          // 400-403 = bad form or key, retrying will not help
-          var isFinal = res.status >= 400 && res.status <= 403;
-          return { ok: false, final: isFinal, status: res.status };
-        }
-        function onNetworkError() {
-          return { ok: false, final: false, status: 0 };
-        }
-        function post(item) {
-          var body = item.body;
-          if (typeof body === "string") body = new URLSearchParams(body);
-          return fetch(item.action, {
-            method: "POST",
-            headers: { Accept: "application/json" },
-            body: body,
-            keepalive: body.toString().length < 60000,
-          }).then(onResponse, onNetworkError);
-        }
-
-        function deliver(item, n) {
-          return post(item).then(function (r) {
-            if (r.ok || r.final) {
-              drop(item.id);
-              return r;
+            body.dark-theme {
+                --orange: #ff8a2a;
+                --blue: #0fa4e8; /* Email Sender logo blue */
+                --bg: #03140e;
+                --text: #e6fbf1;
+                --soft: #9cc5b3;
+                --card: rgba(8, 38, 28, 0.78);
+                --card-line: rgba(52, 211, 153, 0.2);
+                --glass: rgba(4, 26, 19, 0.78);
+                --input: #04201a;
+                --input-line: #1f5a47;
+                --ring: rgba(52, 211, 153, 0.3);
+                --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+                --shadow-hi: 0 22px 50px rgba(16, 185, 129, 0.22);
+                --err: #ff8a8a;
+                --err-bg: rgba(255, 90, 90, 0.12);
+                --ok-bg: rgba(52, 211, 153, 0.14);
             }
-            // Out of retries: it stays in the outbox, retried on the next visit.
-            if (n >= RETRY.length) return r;
-            return new Promise(function (resolve) {
-              setTimeout(resolve, RETRY[n]);
-            }).then(function () {
-              return deliver(item, n + 1);
-            });
-          });
-        }
 
-        // Anything that could not be sent last time (tab closed or offline) is
-        // sent again as soon as the page opens.
-        var DAY = 24 * 3600 * 1000;
-        load().forEach(function (item) {
-          if (Date.now() - item.t > DAY) return drop(item.id);
-          if (item.action === form.action) deliver(item, 1);
-        });
+            * {
+                box-sizing: border-box;
+                -webkit-tap-highlight-color: transparent;
+            }
 
-        function showSent() {
-          form.reset();
-          updateCount();
-          form.querySelectorAll(".touched").forEach(function (field) {
-            field.classList.remove("touched");
-          });
-          form.classList.add("is-sent");
-          form.querySelector(".es-done").focus();
-        }
+            html {
+                scroll-behavior: smooth;
+            }
 
-        function fail(r) {
-          if (r.status === 0) {
-            msg.textContent = "Network error. Please check your connection.";
-          } else if (r.status === 429) {
-            msg.textContent =
-              "Too many messages. Please try again in a little while.";
-          } else if (r.status === 401 || r.status === 403) {
-            msg.textContent = "This form is not set up correctly.";
-          } else {
-            msg.textContent = "Something went wrong. Please try again.";
-          }
-          msg.classList.add("show");
-        }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                background: var(--bg);
+                color: var(--text);
+                font-family: "Inter", "Noto Sans Bengali", Arial, sans-serif;
+                line-height: 1.6;
+                overflow-x: hidden;
+                position: relative;
+                transition:
+                    background-color 0.4s ease,
+                    color 0.4s ease;
+            }
 
-        function idle() {
-          form.classList.remove("is-busy");
-          btn.disabled = false;
-          btnText.textContent = label;
-        }
+            a {
+                color: inherit;
+            }
 
-        form.addEventListener("submit", function (e) {
-          e.preventDefault();
-          msg.classList.remove("show");
-          form.classList.add("is-busy");
-          btn.disabled = true;
-          btnText.textContent = "Sending...";
+            a:focus-visible,
+            button:focus-visible,
+            input:focus-visible,
+            select:focus-visible,
+            textarea:focus-visible {
+                outline: 3px solid var(--lime);
+                outline-offset: 2px;
+            }
 
-          var data = new FormData(form);
-          var id = uid();
-          data.set("submissionId", id);
-          // Full link of the page the form was filled on (port included)
-          data.set("pageUrl", window.location.href);
-          var item = {
-            id: id,
-            action: form.action,
-            body: new URLSearchParams(data),
-            t: Date.now(),
-          };
-          // Keep the message on the device first, in case the server is asleep.
-          var list = load();
-          list.push({
-            id: id,
-            action: item.action,
-            body: item.body.toString(),
-            t: item.t,
-          });
-          save(list);
+            @keyframes flow {
+                to {
+                    background-position: 200% 0;
+                }
+            }
 
-          var settled = false;
-          function finish(r) {
-            if (settled) return;
-            settled = true;
-            if (r.ok) showSent();
-            else fail(r);
-            idle();
-          }
+            @keyframes drift {
+                to {
+                    transform: translate3d(8vmax, 6vmax, 0) scale(1.15)
+                        rotate(25deg);
+                }
+            }
 
-          // The server usually answers in 1-2 seconds. After 2.5 seconds the
-          // visitor is not kept waiting: we show "sent" while the real delivery
-          // carries on in the background with retries.
-          var timer = setTimeout(function () {
-            finish({ ok: true });
-          }, 2500);
-          deliver(item, 0).then(function (r) {
-            clearTimeout(timer);
-            if (!settled) finish(r);
-          });
-        });
+            @keyframes float {
+                50% {
+                    transform: translateY(-22px) scale(1.07);
+                }
+            }
 
-        form.querySelector(".es-again").addEventListener("click", function () {
-          form.classList.remove("is-sent");
-        });
-      })();
-    </script>
-    <script nonce="{{ csp_nonce() }}">
-(function(){var b=document.getElementById('aa-mode');if(!b)return;b.addEventListener('click',function(){var d=document.body.classList.toggle('dark-theme');try{localStorage.setItem('aa-theme',d?'dark':'light');}catch(e){}var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#022c22':'#064e3b');});})();
-</script>
-  </body>
+            /* Aurora background */
+            .aurora {
+                position: fixed;
+                inset: 0;
+                z-index: -1;
+                overflow: hidden;
+                pointer-events: none;
+            }
+
+            .aurora i {
+                position: absolute;
+                width: 55vmax;
+                height: 55vmax;
+                border-radius: 50%;
+                filter: blur(90px);
+                opacity: 0.45;
+                animation: drift 22s ease-in-out infinite alternate;
+            }
+
+            .aurora i:nth-child(1) {
+                background: radial-gradient(circle, #34d399, transparent 65%);
+                top: -18vmax;
+                left: -14vmax;
+            }
+
+            .aurora i:nth-child(2) {
+                background: radial-gradient(circle, #a3e635, transparent 65%);
+                top: 30vh;
+                right: -22vmax;
+                animation-duration: 28s;
+                opacity: 0.3;
+            }
+
+            .aurora i:nth-child(3) {
+                background: radial-gradient(circle, #14b8a6, transparent 65%);
+                bottom: -24vmax;
+                left: 15vw;
+                animation-duration: 34s;
+            }
+
+            body.dark-theme .aurora i {
+                opacity: 0.3;
+            }
+
+            body.dark-theme .aurora i:nth-child(2) {
+                opacity: 0.16;
+            }
+
+            /* Top bar */
+            .aa-nav {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 18px;
+                background: var(--glass);
+                border-bottom: 1px solid var(--card-line);
+                backdrop-filter: blur(18px) saturate(160%);
+                -webkit-backdrop-filter: blur(18px) saturate(160%);
+            }
+
+            .aa-brand {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                text-decoration: none;
+                flex: none;
+            }
+
+            .aa-brand .emblem {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                overflow: hidden;
+                display: block;
+                box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+                transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+            }
+
+            .aa-brand:hover .emblem {
+                transform: rotate(-10deg) scale(1.08);
+            }
+
+            .aa-brand img {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            .aa-brand .wm {
+                font:
+                    800 21px/1 "Sora",
+                    sans-serif;
+                letter-spacing: -0.4px;
+                white-space: nowrap;
+            }
+
+            .aa-brand .wm b {
+                background: var(--grad);
+                background-size: 200% auto;
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                animation: flow 5s linear infinite;
+            }
+
+            .aa-links {
+                display: flex;
+                gap: 6px;
+                flex: 1;
+                min-width: 0;
+                overflow-x: auto;
+                scrollbar-width: none;
+                overscroll-behavior-x: contain;
+            }
+
+            .aa-links::-webkit-scrollbar {
+                display: none;
+            }
+
+            .aa-links a {
+                flex: none;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 8px 16px;
+                border-radius: 999px;
+                color: var(--soft);
+                border: 1px solid transparent;
+                transition:
+                    color 0.25s,
+                    background 0.25s,
+                    border-color 0.25s;
+            }
+
+            .aa-links a:hover {
+                color: var(--g600);
+                border-color: var(--card-line);
+            }
+
+            .aa-links a.on {
+                color: var(--g700);
+                background: rgba(16, 185, 129, 0.16);
+                border-color: var(--card-line);
+                font-weight: 700;
+            }
+
+            body.dark-theme .aa-links a:hover,
+            body.dark-theme .aa-links a.on {
+                color: var(--g300);
+            }
+
+            .aa-ico {
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                border-radius: 50%;
+                display: inline-grid;
+                place-items: center;
+                flex: none;
+                position: relative;
+                background: var(--card);
+                border: 1px solid var(--card-line);
+                color: var(--g700);
+                cursor: pointer;
+                text-decoration: none;
+                transition:
+                    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1),
+                    background 0.25s,
+                    color 0.25s,
+                    box-shadow 0.25s;
+            }
+
+            body.dark-theme .aa-ico {
+                color: var(--g300);
+            }
+
+            .aa-ico:hover {
+                transform: translateY(-2px) scale(1.06);
+                background: var(--grad);
+                color: #022c22;
+                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            }
+
+            .aa-ico svg {
+                position: absolute;
+                width: 19px;
+                height: 19px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                transition:
+                    transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1),
+                    opacity 0.4s;
+            }
+
+            .aa-ico .i-sun {
+                transform: rotate(-120deg) scale(0.3);
+                opacity: 0;
+            }
+
+            body.dark-theme .aa-ico .i-sun {
+                transform: none;
+                opacity: 1;
+            }
+
+            body.dark-theme .aa-ico .i-moon {
+                transform: rotate(120deg) scale(0.3);
+                opacity: 0;
+            }
+
+            /* Page + banner + panel */
+            .page {
+                max-width: 880px;
+                margin: 0 auto;
+                padding: 26px 18px 6px;
+            }
+
+            .banner {
+                position: relative;
+                overflow: hidden;
+                isolation: isolate;
+                text-align: center;
+                border-radius: 28px;
+                padding: 38px 24px 34px;
+                color: #effff7;
+                background: linear-gradient(
+                    125deg,
+                    var(--g900),
+                    var(--g700) 45%,
+                    var(--teal) 80%,
+                    var(--lime)
+                );
+                background-size: 220% 220%;
+                animation: flow 14s ease infinite;
+                box-shadow: var(--shadow-hi);
+            }
+
+            .banner::before,
+            .banner::after {
+                content: "";
+                position: absolute;
+                border-radius: 50%;
+                z-index: -1;
+                border: 2px solid rgba(255, 255, 255, 0.18);
+                animation: float 9s ease-in-out infinite;
+            }
+
+            .banner::before {
+                width: 260px;
+                height: 260px;
+                right: -70px;
+                top: -90px;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.25),
+                    transparent 70%
+                );
+            }
+
+            .banner::after {
+                width: 160px;
+                height: 160px;
+                left: 8%;
+                bottom: -70px;
+                animation-delay: -4s;
+                background: radial-gradient(
+                    circle,
+                    rgba(163, 230, 53, 0.4),
+                    transparent 70%
+                );
+            }
+
+            .banner img {
+                display: block;
+                width: 72px;
+                height: 72px;
+                margin: 0 auto;
+                border-radius: 20px;
+                box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+            }
+
+            .banner h1 {
+                font:
+                    800 clamp(30px, 6vw, 44px)/1.15 "Sora",
+                    "Noto Sans Bengali",
+                    sans-serif;
+                letter-spacing: -0.8px;
+                margin: 16px 0 8px;
+            }
+
+            .banner p {
+                margin: 0;
+                font-size: 15px;
+                color: #c9f5df;
+            }
+
+            .panel {
+                background: var(--card);
+                border: 1px solid var(--card-line);
+                border-radius: 24px;
+                box-shadow: var(--shadow);
+                padding: 34px 36px;
+                margin-top: 22px;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+
+            .prose h2 {
+                position: relative;
+                margin: 36px 0 16px;
+                padding-bottom: 13px;
+                font:
+                    800 clamp(20px, 3vw, 25px)/1.3 "Sora",
+                    "Noto Sans Bengali",
+                    sans-serif;
+                letter-spacing: -0.3px;
+                color: var(--text);
+            }
+
+            .prose h2:first-child {
+                margin-top: 0;
+            }
+
+            .prose h2::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 56px;
+                height: 4px;
+                border-radius: 4px;
+                background: var(--grad);
+            }
+
+            .prose {
+                overflow-wrap: anywhere;
+            }
+
+            .prose p,
+            .prose li {
+                color: var(--soft);
+                font-size: 15.5px;
+                line-height: 1.85;
+            }
+
+            .prose p {
+                margin: 0 0 16px;
+            }
+
+            .prose strong {
+                color: var(--text);
+            }
+
+            .prose a {
+                color: var(--g600);
+                font-weight: 700;
+            }
+
+            body.dark-theme .prose a {
+                color: var(--g300);
+            }
+
+            .prose ul {
+                padding-left: 20px;
+                margin: 0 0 16px;
+            }
+
+            .prose li {
+                margin-bottom: 8px;
+            }
+
+            .prose li::marker {
+                color: var(--g500);
+            }
+
+            .prose .lede {
+                font-size: 17.5px;
+                color: var(--text);
+            }
+
+            .callout {
+                margin: 26px 0;
+                padding: 22px 24px;
+                border-radius: 18px;
+                border: 1px solid var(--card-line);
+                border-left: 5px solid var(--g500);
+                background: rgba(16, 185, 129, 0.1);
+            }
+
+            .callout strong {
+                display: block;
+                margin-bottom: 6px;
+                font-family: "Sora", sans-serif;
+                color: var(--g700);
+            }
+
+            body.dark-theme .callout strong {
+                color: var(--g300);
+            }
+
+            .callout p {
+                margin: 0;
+                font-size: 16px;
+                color: var(--text);
+            }
+
+            .cover {
+                list-style: none;
+                padding: 0;
+                margin: 0 0 6px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+            }
+
+            .cover li {
+                margin: 0;
+                padding: 16px 18px;
+                border-radius: 18px;
+                border: 1px solid var(--card-line);
+                background: var(--card);
+                font-size: 14.5px;
+                line-height: 1.65;
+                transition:
+                    transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1),
+                    border-color 0.25s;
+            }
+
+            .cover li:hover {
+                transform: translateY(-3px);
+                border-color: var(--g400);
+            }
+
+            .cover strong {
+                display: block;
+                margin-bottom: 4px;
+                font:
+                    700 16px "Sora",
+                    "Noto Sans Bengali",
+                    sans-serif;
+                color: var(--text);
+            }
+
+            .cta-row {
+                text-align: center;
+                margin: 28px 0 8px;
+            }
+
+            /* Buttons */
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 12px 26px;
+                border-radius: 999px;
+                border: none;
+                cursor: pointer;
+                text-decoration: none;
+                font:
+                    800 14px "Inter",
+                    sans-serif;
+                color: #022c22;
+                background: var(--grad);
+                background-size: 200% 200%;
+                box-shadow: 0 8px 22px rgba(16, 185, 129, 0.35);
+                transition:
+                    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1),
+                    box-shadow 0.25s;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(16, 185, 129, 0.45);
+                animation: flow 2s linear infinite;
+            }
+
+            .btn:active {
+                transform: scale(0.96);
+            }
+
+            .btn.ghost {
+                background: var(--card);
+                color: var(--text);
+                border: 1px solid var(--card-line);
+                box-shadow: none;
+            }
+
+            .btn.ghost:hover {
+                border-color: var(--g400);
+                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+            }
+
+            .btn.deep {
+                background: linear-gradient(
+                    135deg,
+                    var(--g900),
+                    var(--g700) 60%,
+                    var(--teal)
+                );
+                color: #effff7;
+            }
+
+            .btn.danger {
+                background: linear-gradient(120deg, #dc2626, #f97316);
+                color: #fff;
+                box-shadow: 0 8px 22px rgba(220, 38, 38, 0.3);
+            }
+
+            .btn.small {
+                padding: 9px 16px;
+                font-size: 13px;
+            }
+
+            .btn.block {
+                width: 100%;
+                padding: 14px;
+            }
+
+            /* Forms */
+            .field {
+                margin-bottom: 18px;
+            }
+
+            .field label {
+                display: block;
+                margin-bottom: 7px;
+                font-weight: 700;
+                font-size: 13.5px;
+            }
+
+            .field input,
+            .field select,
+            .field textarea {
+                display: block;
+                width: 100%;
+                padding: 12px 14px;
+                font: inherit;
+                font-size: 15px;
+                color: var(--text);
+                background: var(--input);
+                border: 1.5px solid var(--input-line);
+                border-radius: 14px;
+                outline: none;
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.25s;
+            }
+
+            .field input:focus,
+            .field select:focus,
+            .field textarea:focus {
+                border-color: var(--g400);
+                box-shadow: 0 0 0 4px var(--ring);
+            }
+
+            .field input::placeholder,
+            .field textarea::placeholder {
+                color: var(--soft);
+                opacity: 0.7;
+            }
+
+            .field textarea {
+                resize: vertical;
+                min-height: 150px;
+                line-height: 1.6;
+            }
+
+            .hint {
+                margin: 7px 0 0;
+                font-size: 12.5px;
+                color: var(--soft);
+            }
+
+            .alert {
+                padding: 12px 14px;
+                margin-bottom: 18px;
+                border-radius: 14px;
+                font-size: 14px;
+                font-weight: 600;
+                text-align: center;
+            }
+
+            .alert.err {
+                color: var(--err);
+                background: var(--err-bg);
+                border: 1px solid var(--err);
+            }
+
+            .alert.ok {
+                color: var(--g700);
+                background: var(--ok-bg);
+                border: 1px solid var(--g400);
+            }
+
+            body.dark-theme .alert.ok {
+                color: var(--g300);
+            }
+
+            /* Admin / login cards */
+            .center-wrap {
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                padding: 22px 16px;
+            }
+
+            .admin-wrap {
+                padding: 30px 16px 40px;
+            }
+
+            .card-x {
+                position: relative;
+                overflow: hidden;
+                width: 100%;
+                margin: 0 auto;
+                background: var(--card);
+                border: 1px solid var(--card-line);
+                border-radius: 26px;
+                box-shadow: var(--shadow-hi);
+                padding: 32px 30px;
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+
+            .card-x::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                height: 5px;
+                background: var(--grad);
+                background-size: 200% 100%;
+                animation: flow 5s linear infinite;
+            }
+
+            .card-x.narrow {
+                max-width: 380px;
+                text-align: center;
+            }
+
+            .card-x.wide {
+                max-width: 680px;
+            }
+
+            .ahead {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin: 4px 0 22px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid var(--card-line);
+            }
+
+            .ahead .ttl {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 0;
+                text-decoration: none;
+            }
+
+            .ahead .ttl img {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                flex: none;
+                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+            }
+
+            .ahead h1 {
+                margin: 0;
+                font:
+                    800 20px "Sora",
+                    "Noto Sans Bengali",
+                    sans-serif;
+                letter-spacing: -0.3px;
+            }
+
+            .ahead .acts {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .back-link {
+                display: block;
+                text-align: center;
+                margin-top: 20px;
+                text-decoration: none;
+                color: var(--soft);
+                font-weight: 700;
+                font-size: 13.5px;
+                transition: color 0.2s;
+            }
+
+            .back-link:hover {
+                color: var(--g500);
+            }
+
+            .aa-foot {
+                text-align: center;
+                color: var(--soft);
+                font-size: 13px;
+                padding: 26px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+            }
+
+            @media (max-width: 640px) {
+                .aa-nav {
+                    padding: 9px 12px;
+                    gap: 8px;
+                }
+                .aa-brand .wm {
+                    display: none;
+                }
+                .page {
+                    padding: 18px 12px 4px;
+                }
+                .banner {
+                    padding: 30px 18px 26px;
+                    border-radius: 24px;
+                }
+                .panel {
+                    padding: 24px 20px;
+                    border-radius: 22px;
+                }
+                .cover {
+                    grid-template-columns: 1fr;
+                }
+                .card-x {
+                    padding: 28px 20px 24px;
+                    border-radius: 22px;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+
+            /* ===== Contact card: A.A.News x Email Sender ===== */
+            .es-wrap {
+                padding: 26px 16px 10px;
+            }
+
+            .es-form {
+                --es-or: var(--orange);
+                position: relative;
+                max-width: 480px;
+                margin: 0 auto;
+                padding: 30px 28px 20px;
+                overflow: hidden;
+                color: var(--text);
+                background: var(--card);
+                border: 1px solid var(--card-line);
+                border-radius: 26px;
+                box-shadow: var(--shadow-hi);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                animation: es-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+
+            .es-form::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                height: 5px;
+                background: linear-gradient(
+                    90deg,
+                    var(--g500),
+                    var(--teal),
+                    var(--lime),
+                    var(--orange2),
+                    var(--orange),
+                    var(--g500)
+                );
+                background-size: 300% 100%;
+                animation: es-bar 6s linear infinite;
+            }
+
+            .es-form::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                background:
+                    radial-gradient(
+                        260px 200px at 100% 0,
+                        rgba(255, 138, 42, 0.14),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        280px 220px at 0 100%,
+                        rgba(16, 185, 129, 0.2),
+                        transparent 70%
+                    );
+            }
+
+            .es-form > * {
+                position: relative;
+                z-index: 1;
+            }
+
+            @keyframes es-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(18px) scale(0.98);
+                }
+                to {
+                    opacity: 1;
+                    transform: none;
+                }
+            }
+
+            @keyframes es-bar {
+                to {
+                    background-position: 300% 0;
+                }
+            }
+
+            @keyframes es-up {
+                from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: none;
+                }
+            }
+
+            @keyframes es-float {
+                0%,
+                100% {
+                    transform: translateY(0) rotate(-2deg);
+                }
+                50% {
+                    transform: translateY(-7px) rotate(2deg);
+                }
+            }
+
+            .es-head {
+                text-align: center;
+                margin: 2px 0 22px;
+                animation: es-up 0.6s 0.05s both;
+            }
+
+            .es-collab-logos {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                margin: 2px 0 16px;
+            }
+
+            .lg {
+                width: 88px;
+                height: 88px;
+                border-radius: 26px;
+                display: grid;
+                place-items: center;
+                flex: none;
+                animation: es-float 4.2s ease-in-out infinite;
+            }
+
+            .lg.aa {
+                overflow: hidden;
+                box-shadow: 0 12px 30px rgba(16, 185, 129, 0.45);
+            }
+
+            .lg.aa img {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            .lg.es {
+                animation-delay: -2s;
+                filter: drop-shadow(0 10px 18px rgba(255, 138, 42, 0.4));
+            }
+
+            .lg.es img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: block;
+            }
+
+            .lg.es svg.fb {
+                display: none;
+                width: 68%;
+                height: 68%;
+                fill: var(--orange);
+            }
+
+            .lg.es.noimg svg.fb {
+                display: block;
+            }
+
+            .plus {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                flex: none;
+                font-size: 23px;
+                line-height: 1;
+                color: var(--orange);
+                border: 1px solid var(--card-line);
+                background: var(--card);
+            }
+
+            .es-collab {
+                margin: 0 0 14px;
+                font:
+                    800 15px "Inter",
+                    sans-serif;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            .es-collab .a {
+                background: linear-gradient(100deg, var(--g600), var(--teal));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            body.dark-theme .es-collab .a {
+                background-image: linear-gradient(
+                    100deg,
+                    var(--g400),
+                    var(--lime)
+                );
+            }
+
+            .es-collab .es-hs {
+                margin: 0 4px;
+                font-size: 1.25em;
+                vertical-align: -0.1em;
+                background: linear-gradient(90deg, var(--g500), var(--orange));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            .es-collab .e {
+                color: var(--orange);
+            }
+
+            .es-collab .e .es-blue {
+                color: var(--blue);
+            }
+
+            .es-title {
+                margin: 0;
+                font:
+                    800 clamp(28px, 7vw, 32px)/1.2 "Sora",
+                    "Noto Sans Bengali",
+                    sans-serif;
+                letter-spacing: -0.02em;
+                background: linear-gradient(
+                    100deg,
+                    var(--g600),
+                    var(--teal) 55%,
+                    var(--g500)
+                );
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            body.dark-theme .es-title {
+                background-image: linear-gradient(
+                    100deg,
+                    var(--g400),
+                    var(--lime)
+                );
+            }
+
+            .es-sub {
+                margin: 8px 0 0;
+                font-size: 15px;
+                color: var(--soft);
+            }
+
+            .es-field {
+                margin-bottom: 16px;
+                animation: es-up 0.6s var(--d, 0.12s) both;
+            }
+
+            .es-field label {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 7px;
+                font-size: 14px;
+                font-weight: 700;
+                transition: color 0.2s;
+            }
+
+            .es-field:focus-within label {
+                color: var(--g600);
+            }
+
+            body.dark-theme .es-field:focus-within label {
+                color: var(--g300);
+            }
+
+            .es-ctl {
+                position: relative;
+            }
+
+            .es-ico {
+                position: absolute;
+                left: 14px;
+                top: 15px;
+                width: 18px;
+                height: 18px;
+                fill: none;
+                stroke: var(--soft);
+                stroke-width: 1.8;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                pointer-events: none;
+                transition:
+                    stroke 0.2s,
+                    transform 0.3s;
+            }
+
+            .es-field:focus-within .es-ico {
+                stroke: var(--orange);
+                transform: scale(1.14);
+            }
+
+            .es-field input,
+            .es-field textarea {
+                display: block;
+                width: 100%;
+                padding: 13px 14px 13px 42px;
+                font: inherit;
+                font-size: 16px;
+                color: var(--text);
+                background: var(--input);
+                border: 1.5px solid var(--input-line);
+                border-radius: 14px;
+                outline: none;
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.25s,
+                    transform 0.2s;
+            }
+
+            .es-field input::placeholder,
+            .es-field textarea::placeholder {
+                color: var(--soft);
+                opacity: 0.65;
+            }
+
+            .es-field input:focus,
+            .es-field textarea:focus {
+                border-color: var(--g400);
+                box-shadow: 0 0 0 4px var(--ring);
+                transform: translateY(-1px);
+            }
+
+            .es-field textarea {
+                min-height: 128px;
+                resize: vertical;
+            }
+
+            .es-count {
+                font-size: 11.5px;
+                font-weight: 500;
+                color: var(--soft);
+            }
+
+            .es-hint {
+                display: none;
+                margin-top: 5px;
+                font-size: 12.5px;
+                color: var(--err);
+            }
+
+            .es-field.touched input:invalid,
+            .es-field.touched textarea:invalid {
+                border-color: var(--err);
+            }
+
+            .es-field.touched input:invalid ~ .es-hint,
+            .es-field.touched textarea:invalid ~ .es-hint {
+                display: block;
+            }
+
+            .es-msg {
+                display: none;
+                margin: 0 0 14px;
+                padding: 11px 14px;
+                font-size: 14px;
+                color: var(--err);
+                border: 1px solid var(--err);
+                border-radius: 12px;
+            }
+
+            .es-msg.show {
+                display: block;
+                animation: es-up 0.3s both;
+            }
+
+            .es-btn {
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+                padding: 14px 18px;
+                font: inherit;
+                font-size: 16px;
+                font-weight: 800;
+                letter-spacing: 0.01em;
+                color: #022c22;
+                background: linear-gradient(
+                    110deg,
+                    var(--g500),
+                    var(--lime),
+                    var(--g500)
+                );
+                background-size: 220% 100%;
+                border: 0;
+                border-radius: 14px;
+                cursor: pointer;
+                box-shadow: 0 10px 22px var(--ring);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.25s,
+                    background-position 0.5s;
+                animation: es-up 0.6s 0.35s both;
+            }
+
+            .es-btn::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: -70%;
+                width: 45%;
+                background: linear-gradient(
+                    100deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.5),
+                    transparent
+                );
+                transform: skewX(-20deg);
+                animation: es-shine 3.4s ease-in-out infinite 1s;
+            }
+
+            @keyframes es-shine {
+                0%,
+                55% {
+                    left: -70%;
+                }
+                100% {
+                    left: 140%;
+                }
+            }
+
+            .es-btn:hover {
+                transform: translateY(-2px);
+                background-position: 100% 0;
+                box-shadow: 0 14px 28px rgba(16, 185, 129, 0.4);
+            }
+
+            .es-btn:active {
+                transform: translateY(0);
+            }
+
+            .es-btn svg {
+                width: 19px;
+                height: 19px;
+                fill: #022c22;
+                transition: transform 0.35s;
+            }
+
+            .es-btn:hover svg {
+                transform: translate(4px, -3px) rotate(-8deg);
+            }
+
+            .es-btn:disabled {
+                opacity: 0.85;
+                cursor: progress;
+                transform: none;
+            }
+
+            .es-form.is-busy .es-btn svg {
+                animation: es-take 0.9s ease-in infinite;
+            }
+
+            @keyframes es-take {
+                0% {
+                    transform: translate(0, 0);
+                }
+                70% {
+                    transform: translate(26px, -18px);
+                    opacity: 0;
+                }
+                71% {
+                    transform: translate(-18px, 12px);
+                    opacity: 0;
+                }
+                100% {
+                    transform: translate(0, 0);
+                    opacity: 1;
+                }
+            }
+
+            .es-hp {
+                position: absolute;
+                left: -9999px;
+                width: 0;
+                height: 0;
+                opacity: 0;
+            }
+
+            .es-done {
+                display: none;
+                position: relative;
+                text-align: center;
+                padding: 10px 0 6px;
+                outline: none;
+            }
+
+            .es-form.is-sent .es-body {
+                display: none;
+            }
+
+            .es-form.is-sent .es-done {
+                display: block;
+                animation: es-up 0.5s both;
+            }
+
+            .es-done svg.es-tick {
+                width: 84px;
+                height: 84px;
+                margin-bottom: 8px;
+            }
+
+            .es-done circle {
+                fill: rgba(16, 185, 129, 0.1);
+                stroke: var(--g500);
+                stroke-width: 2.5;
+                stroke-dasharray: 145;
+                stroke-dashoffset: 145;
+                animation: es-draw 0.7s ease forwards;
+            }
+
+            .es-done path {
+                fill: none;
+                stroke: var(--orange);
+                stroke-width: 3.4;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                stroke-dasharray: 40;
+                stroke-dashoffset: 40;
+                animation: es-draw 0.45s 0.55s ease forwards;
+            }
+
+            @keyframes es-draw {
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+
+            .es-sparks {
+                position: absolute;
+                left: 50%;
+                top: 44px;
+                width: 0;
+                height: 0;
+            }
+
+            .es-sparks i {
+                position: absolute;
+                left: -4px;
+                top: -4px;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--g500);
+                opacity: 0;
+                animation: es-burst 0.95s 0.55s ease-out forwards;
+            }
+
+            .es-sparks i:nth-child(even) {
+                background: var(--orange);
+            }
+
+            @keyframes es-burst {
+                0% {
+                    opacity: 1;
+                    transform: rotate(var(--a)) translateY(-30px) scale(1);
+                }
+                100% {
+                    opacity: 0;
+                    transform: rotate(var(--a)) translateY(-70px) scale(0.3);
+                }
+            }
+
+            .es-done h3 {
+                margin: 0 0 6px;
+                font:
+                    800 23px "Sora",
+                    sans-serif;
+                background: linear-gradient(100deg, var(--g600), var(--teal));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            body.dark-theme .es-done h3 {
+                background-image: linear-gradient(
+                    100deg,
+                    var(--g400),
+                    var(--lime)
+                );
+            }
+
+            .es-done p {
+                margin: 0 auto 18px;
+                max-width: 300px;
+                font-size: 15px;
+                line-height: 1.6;
+                color: var(--soft);
+            }
+
+            .es-again {
+                padding: 10px 18px;
+                font: inherit;
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--text);
+                background: transparent;
+                border: 1.5px solid var(--input-line);
+                border-radius: 12px;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .es-again:hover {
+                border-color: var(--g400);
+                color: var(--g600);
+                transform: translateY(-1px);
+            }
+
+            body.dark-theme .es-again:hover {
+                color: var(--g300);
+            }
+
+            .es-badge {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-top: 18px;
+                padding-top: 14px;
+                border-top: 1px dashed var(--card-line);
+                font-size: 12.5px;
+                color: var(--soft);
+                text-decoration: none;
+            }
+
+            .es-badge img {
+                width: 34px;
+                height: 34px;
+                object-fit: contain;
+                transition: transform 0.4s;
+            }
+
+            .es-badge:hover img {
+                transform: rotate(-10deg) scale(1.12);
+            }
+
+            .es-badge b {
+                font-size: 14px;
+                font-weight: 800;
+                color: var(--g600);
+            }
+
+            body.dark-theme .es-badge b {
+                color: var(--g400);
+            }
+
+            .es-badge b .es-blue {
+                color: var(--blue);
+            }
+
+            .es-badge b .es-orange {
+                color: var(--orange);
+            }
+
+            .es-note {
+                max-width: 480px;
+                margin: 18px auto 0;
+                text-align: center;
+                font-size: 13px;
+                color: var(--soft);
+            }
+
+            .es-note a {
+                color: var(--g600);
+                font-weight: 700;
+            }
+
+            body.dark-theme .es-note a {
+                color: var(--g300);
+            }
+
+            @media (max-width: 420px) {
+                .es-form {
+                    padding: 26px 18px 18px;
+                    border-radius: 22px;
+                }
+                .lg {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 24px;
+                }
+            }
+        </style>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+    </head>
+    <body>
+        {% include "_guard.html" %}
+        <!-- Apply the saved (or system) theme before the page paints -->
+        <script nonce="{{ csp_nonce() }}">
+            try {
+                var t = localStorage.getItem("aa-theme");
+                if (
+                    t
+                        ? t === "dark"
+                        : matchMedia("(prefers-color-scheme: dark)").matches
+                )
+                    document.body.classList.add("dark-theme");
+            } catch (e) {}
+        </script>
+        <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+        <nav class="aa-nav" aria-label="Main">
+            <a class="aa-brand" href="/" aria-label="A.A.News home">
+                <span class="emblem">
+                    <img
+                        src="/static/icons/logo-128.png"
+                        width="40"
+                        height="40"
+                        alt=""
+                    />
+                </span>
+                <span class="wm">A.A.<b>News</b></span>
+            </a>
+
+            <div class="aa-links">
+                <a href="/">Home</a>
+                <a href="/about">About</a>
+                <a href="/contact" class="on" aria-current="page">Contact</a>
+                <a href="/privacy-policy">Privacy</a>
+            </div>
+
+            <button
+                class="aa-ico"
+                id="aa-mode"
+                type="button"
+                aria-label="Toggle dark mode"
+                title="Dark / light mode"
+            >
+                <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                        d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"
+                    />
+                </svg>
+                <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <path
+                        d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                    />
+                </svg>
+            </button>
+        </nav>
+
+        <main class="es-wrap">
+            <form
+                class="es-form"
+                id="es-form"
+                action="https://email-sender-wy5o.onrender.com/api/v1/mail/send"
+                method="POST"
+            >
+                <div class="es-head">
+                    <div class="es-collab-logos">
+                        <span class="lg aa"
+                            ><img
+                                src="/static/icons/logo-256.png"
+                                width="88"
+                                height="88"
+                                alt="A.A.News"
+                        /></span>
+                        <span class="plus" aria-hidden="true">+</span>
+                        <span class="lg es">
+                            <img
+                                src="https://res.cloudinary.com/khvkgpxq/image/upload/v1791965885/badge-logo-320.png"
+                                data-fb="https://res.cloudinary.com/khvkgpxq/image/upload/w_64,h_64,c_fit,f_auto,q_auto/v1791551108/badge-logo.png"
+                                alt="Email Sender"
+                                width="88"
+                                height="88"
+                            />
+                            <svg
+                                class="fb"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M3 11.5 21 4l-7.5 17-2.4-7.1L3 11.5z"
+                                />
+                            </svg>
+                        </span>
+                    </div>
+                    <p class="es-collab">
+                        <span class="a">A.A. News</span>
+                        <i
+                            class="fa-solid fa-handshake es-hs"
+                            aria-hidden="true"
+                        ></i>
+                        <span class="e"
+                            ><span class="es-blue">Email</span> Sender</span
+                        >
+                    </p>
+                    <h1 class="es-title">Get in touch</h1>
+                    <p class="es-sub">
+                        Send us a message and we will reply soon.
+                    </p>
+                </div>
+
+                <div class="es-body">
+                    <input
+                        type="hidden"
+                        name="access_key"
+                        value="Anubhab_email_sndr_dcba71ef22a6c6ffd7dc4538e5dc5730"
+                    />
+                    <input
+                        type="text"
+                        name="botcheck"
+                        class="es-hp"
+                        tabindex="-1"
+                        autocomplete="off"
+                        aria-hidden="true"
+                    />
+
+                    <div class="es-field" style="--d: 0.15s">
+                        <label for="es-name">Name</label>
+                        <div class="es-ctl">
+                            <svg
+                                class="es-ico"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+                            </svg>
+                            <input
+                                id="es-name"
+                                type="text"
+                                name="name"
+                                placeholder="John Doe"
+                                autocomplete="name"
+                                required
+                            />
+                            <small class="es-hint"
+                                >Please enter your name</small
+                            >
+                        </div>
+                    </div>
+
+                    <div class="es-field" style="--d: 0.22s">
+                        <label for="es-email">Email</label>
+                        <div class="es-ctl">
+                            <svg
+                                class="es-ico"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <rect
+                                    x="3"
+                                    y="5"
+                                    width="18"
+                                    height="14"
+                                    rx="3"
+                                />
+                                <path d="m4 7 8 6 8-6" />
+                            </svg>
+                            <input
+                                id="es-email"
+                                type="email"
+                                name="email"
+                                placeholder="john@example.com"
+                                autocomplete="email"
+                                required
+                            />
+                            <small class="es-hint"
+                                >Enter a valid email address</small
+                            >
+                        </div>
+                    </div>
+
+                    <div class="es-field" style="--d: 0.29s">
+                        <label for="es-subject">Subject</label>
+                        <div class="es-ctl">
+                            <svg
+                                class="es-ico"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path d="M3 12V4h8l10 10-8 8L3 12z" />
+                                <circle cx="7.5" cy="8.5" r="1.2" />
+                            </svg>
+                            <input
+                                id="es-subject"
+                                type="text"
+                                name="subject"
+                                placeholder="How can we help?"
+                                required
+                            />
+                            <small class="es-hint">Add a short subject</small>
+                        </div>
+                    </div>
+
+                    <div class="es-field" style="--d: 0.36s">
+                        <label for="es-text">
+                            Message
+                            <span class="es-count">0 / 1000</span>
+                        </label>
+                        <div class="es-ctl ta">
+                            <svg
+                                class="es-ico"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path d="M4 5h16v11H9l-5 4V5z" />
+                            </svg>
+                            <textarea
+                                id="es-text"
+                                name="message"
+                                rows="5"
+                                maxlength="1000"
+                                placeholder="Write your message..."
+                                required
+                            ></textarea>
+                            <small class="es-hint">Write a few words</small>
+                        </div>
+                    </div>
+
+                    <p class="es-msg" role="alert"></p>
+                    <button type="submit" class="es-btn">
+                        <span class="es-btn-t">Send message</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M3 11.5 21 4l-7.5 17-2.4-7.1L3 11.5z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div
+                    class="es-done"
+                    role="status"
+                    aria-live="polite"
+                    tabindex="-1"
+                >
+                    <div class="es-sparks" aria-hidden="true">
+                        <i style="--a: 0deg"></i>
+                        <i style="--a: 45deg"></i>
+                        <i style="--a: 90deg"></i>
+                        <i style="--a: 135deg"></i>
+                        <i style="--a: 180deg"></i>
+                        <i style="--a: 225deg"></i>
+                        <i style="--a: 270deg"></i>
+                        <i style="--a: 315deg"></i>
+                    </div>
+                    <svg class="es-tick" viewBox="0 0 52 52" aria-hidden="true">
+                        <circle cx="26" cy="26" r="23" />
+                        <path d="M15 27l8 8 14-16" />
+                    </svg>
+                    <h3>Message sent!</h3>
+                    <p>
+                        Thank you for reaching out. We will get back to you
+                        soon.
+                    </p>
+                    <button type="button" class="es-again">
+                        Send another message
+                    </button>
+                </div>
+
+                <a
+                    class="es-badge"
+                    href="https://email-sender-wy5o.onrender.com"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    Powered by
+                    <img
+                        src="https://res.cloudinary.com/khvkgpxq/image/upload/v1791965885/badge-logo-320.png"
+                        data-fb="https://res.cloudinary.com/khvkgpxq/image/upload/w_64,h_64,c_fit,f_auto,q_auto/v1791551108/badge-logo.png"
+                        alt=""
+                    />
+                    <b
+                        ><span class="es-blue">Email</span>
+                        <span class="es-orange">Sender</span></b
+                    >
+                </a>
+            </form>
+            <p class="es-note">
+                A.A.News and Email Sender work together so your message reaches
+                our team directly.
+            </p>
+        </main>
+
+        <footer class="aa-foot">
+            &copy; 2026 A.A.News &middot; Created by Arnab Adhikari &amp;
+            Anubhab Dutta
+        </footer>
+
+        <script nonce="{{ csp_nonce() }}">
+            (function () {
+                var form = document.getElementById("es-form");
+                var msg = form.querySelector(".es-msg");
+                var btn = form.querySelector(".es-btn");
+                var btnText = btn.querySelector(".es-btn-t");
+                var label = btnText.textContent;
+                var area = form.querySelector("textarea");
+                var count = form.querySelector(".es-count");
+                var OUTBOX = "es-outbox";
+                var RETRY = [3000, 8000, 20000, 45000, 90000];
+
+                function uid() {
+                    try {
+                        return crypto.randomUUID();
+                    } catch (e) {}
+                    return (
+                        "es" +
+                        Date.now().toString(36) +
+                        Math.random().toString(36).slice(2, 12)
+                    );
+                }
+
+                function load() {
+                    try {
+                        return JSON.parse(localStorage.getItem(OUTBOX)) || [];
+                    } catch (e) {
+                        return [];
+                    }
+                }
+
+                function save(list) {
+                    try {
+                        localStorage.setItem(OUTBOX, JSON.stringify(list));
+                    } catch (e) {}
+                }
+
+                function drop(id) {
+                    var list = load().filter(function (m) {
+                        return m.id !== id;
+                    });
+                    save(list);
+                }
+
+                // Wake the server up (if the host was sleeping) as soon as the form is
+                // opened or focused, so it is ready before the visitor finishes typing.
+                var warmed = false;
+                function warm() {
+                    if (warmed) return;
+                    warmed = true;
+                    try {
+                        fetch(form.action.replace(/send$/, "ping"), {
+                            mode: "no-cors",
+                            cache: "no-store"
+                        }).catch(function () {});
+                    } catch (e) {}
+                }
+                form.addEventListener("focusin", warm);
+                form.addEventListener("pointerdown", warm);
+                if ("IntersectionObserver" in window) {
+                    new IntersectionObserver(function (entries, observer) {
+                        if (entries[0].isIntersecting) {
+                            warm();
+                            observer.disconnect();
+                        }
+                    }).observe(form);
+                }
+
+                function updateCount() {
+                    if (area && count) {
+                        var max = area.maxLength > 0 ? area.maxLength : 1000;
+                        count.textContent = area.value.length + " / " + max;
+                    }
+                }
+                if (area) {
+                    area.addEventListener("input", updateCount);
+                    updateCount();
+                }
+
+                function touch(el) {
+                    var field = el.closest(".es-field");
+                    if (field) field.classList.add("touched");
+                }
+                form.querySelectorAll("input,textarea").forEach(function (el) {
+                    el.addEventListener("blur", function () {
+                        touch(el);
+                    });
+                });
+                function onInvalid(e) {
+                    touch(e.target);
+                }
+                form.addEventListener("invalid", onInvalid, true);
+
+                // Re-sending the same submissionId is safe (duplicates are dropped).
+                function onResponse(res) {
+                    if (res.ok) return { ok: true };
+                    // 400-403 = bad form or key, retrying will not help
+                    var isFinal = res.status >= 400 && res.status <= 403;
+                    return { ok: false, final: isFinal, status: res.status };
+                }
+                function onNetworkError() {
+                    return { ok: false, final: false, status: 0 };
+                }
+                function post(item) {
+                    var body = item.body;
+                    if (typeof body === "string")
+                        body = new URLSearchParams(body);
+                    return fetch(item.action, {
+                        method: "POST",
+                        headers: { Accept: "application/json" },
+                        body: body,
+                        keepalive: body.toString().length < 60000
+                    }).then(onResponse, onNetworkError);
+                }
+
+                function deliver(item, n) {
+                    return post(item).then(function (r) {
+                        if (r.ok || r.final) {
+                            drop(item.id);
+                            return r;
+                        }
+                        // Out of retries: it stays in the outbox, retried on the next visit.
+                        if (n >= RETRY.length) return r;
+                        return new Promise(function (resolve) {
+                            setTimeout(resolve, RETRY[n]);
+                        }).then(function () {
+                            return deliver(item, n + 1);
+                        });
+                    });
+                }
+
+                // Anything that could not be sent last time (tab closed or offline) is
+                // sent again as soon as the page opens.
+                var DAY = 24 * 3600 * 1000;
+                load().forEach(function (item) {
+                    if (Date.now() - item.t > DAY) return drop(item.id);
+                    if (item.action === form.action) deliver(item, 1);
+                });
+
+                function showSent() {
+                    form.reset();
+                    updateCount();
+                    form.querySelectorAll(".touched").forEach(function (field) {
+                        field.classList.remove("touched");
+                    });
+                    form.classList.add("is-sent");
+                    form.querySelector(".es-done").focus();
+                }
+
+                function fail(r) {
+                    if (r.status === 0) {
+                        msg.textContent =
+                            "Network error. Please check your connection.";
+                    } else if (r.status === 429) {
+                        msg.textContent =
+                            "Too many messages. Please try again in a little while.";
+                    } else if (r.status === 401 || r.status === 403) {
+                        msg.textContent = "This form is not set up correctly.";
+                    } else {
+                        msg.textContent =
+                            "Something went wrong. Please try again.";
+                    }
+                    msg.classList.add("show");
+                }
+
+                function idle() {
+                    form.classList.remove("is-busy");
+                    btn.disabled = false;
+                    btnText.textContent = label;
+                }
+
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    msg.classList.remove("show");
+                    form.classList.add("is-busy");
+                    btn.disabled = true;
+                    btnText.textContent = "Sending...";
+
+                    var data = new FormData(form);
+                    var id = uid();
+                    data.set("submissionId", id);
+                    // Full link of the page the form was filled on (port included)
+                    data.set("pageUrl", window.location.href);
+                    var item = {
+                        id: id,
+                        action: form.action,
+                        body: new URLSearchParams(data),
+                        t: Date.now()
+                    };
+                    // Keep the message on the device first, in case the server is asleep.
+                    var list = load();
+                    list.push({
+                        id: id,
+                        action: item.action,
+                        body: item.body.toString(),
+                        t: item.t
+                    });
+                    save(list);
+
+                    var settled = false;
+                    function finish(r) {
+                        if (settled) return;
+                        settled = true;
+                        if (r.ok) showSent();
+                        else fail(r);
+                        idle();
+                    }
+
+                    // The server usually answers in 1-2 seconds. After 2.5 seconds the
+                    // visitor is not kept waiting: we show "sent" while the real delivery
+                    // carries on in the background with retries.
+                    var timer = setTimeout(function () {
+                        finish({ ok: true });
+                    }, 2500);
+                    deliver(item, 0).then(function (r) {
+                        clearTimeout(timer);
+                        if (!settled) finish(r);
+                    });
+                });
+
+                form.querySelector(".es-again").addEventListener(
+                    "click",
+                    function () {
+                        form.classList.remove("is-sent");
+                    }
+                );
+            })();
+        </script>
+        <script nonce="{{ csp_nonce() }}">
+            (function () {
+                var b = document.getElementById("aa-mode");
+                if (!b) return;
+                b.addEventListener("click", function () {
+                    var d = document.body.classList.toggle("dark-theme");
+                    try {
+                        localStorage.setItem("aa-theme", d ? "dark" : "light");
+                    } catch (e) {}
+                    var m = document.querySelector('meta[name="theme-color"]');
+                    if (m) m.setAttribute("content", d ? "#022c22" : "#064e3b");
+                });
+            })();
+        </script>
+    </body>
 </html>
